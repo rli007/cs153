@@ -1,0 +1,48 @@
+{
+  "title": "Research Artifact to Reproducible Workflow Plan",
+  "benchmark": "reproduce the main macro F1 improvement on a small validation split",
+  "claims": [
+    "On the held-out validation split, the method improves macro F1 from 71.2 to 78.4 compared with a sparse baseline.",
+    "The model also reduces average annotation time in a small user study."
+  ],
+  "missing_details": [
+    "random seed"
+  ],
+  "repo_summary": {
+    "path": ".",
+    "exists": true,
+    "important_files": [
+      "README.md",
+      "pyproject.toml"
+    ],
+    "python_scripts": [
+      "hello.py",
+      "research_copilot/__init__.py",
+      "research_copilot/__main__.py",
+      "research_copilot/cli.py",
+      "research_copilot/extractors.py",
+      "research_copilot/repo_inspector.py",
+      "research_copilot/workflow.py",
+      "research_copilot/writers.py"
+    ],
+    "has_tests": false
+  },
+  "experiment_steps": [
+    "Confirm the target claim and metric definition.",
+    "Map repository entry points to training, inference, and evaluation commands.",
+    "Create a minimal environment file and smoke-test command.",
+    "Run a small-scale reproduction pass before attempting the full benchmark.",
+    "Compare observed metrics against the paper claim and record gaps."
+  ],
+  "generated_artifacts": [
+    "reproduction_plan.md",
+    "future: experiment config",
+    "future: run script",
+    "future: evaluation report"
+  ],
+  "risks": [
+    "Paper text parsing is currently plain-text only.",
+    "Claim extraction uses heuristics and should be replaced with structured LLM extraction.",
+    "Experiment execution is planned but not yet automated."
+  ]
+}

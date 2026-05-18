@@ -1,0 +1,8 @@
+[project]
+name = "research-workflow-copilot"
+version = "0.1.0"
+description = "Scaffold for an AI research copilot that turns papers into reproducible experiment workflows."
+requires-python = ">=3.10"
+
+[project.scripts]
+research-copilot = "research_copilot.cli:main"

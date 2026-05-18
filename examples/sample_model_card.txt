@@ -1,0 +1,3 @@
+Model: sample-retrieval-classifier
+Intended use: small-scale technical document triage experiments.
+Limitations: this placeholder model card does not include hardware or checkpoint details.
