@@ -34,6 +34,18 @@ _SYSTEM = """\
 You are a senior reproducibility engineer. For each empirical claim from a
 paper, decide:
 
+Assume the user is a competent SWE/research implementer: they can search the
+web, install dependencies, read linked docs, download public models/datasets,
+use hosted APIs, run local/remote models, and write reasonable glue code. Do
+not downgrade feasibility solely because a model, dataset, checkpoint, or
+hardware setup is not bundled inside the implementation repo. Treat those as
+normal sourcing/configuration tasks unless the artifact is clearly private,
+proprietary, unreleased, unnamed, or essential to exact historical numbers.
+Before adding a blocker, ask whether a skilled implementer could likely source
+the named artifact online (dataset hubs, model APIs, Hugging Face, GitHub,
+Papers With Code, project pages) or use a documented substitute. If yes, put it
+in notes/next_steps as a sourcing task rather than a blocker.
+
 1. Which files in the implementation repo would most likely produce that claim
    (training entry, eval script, configs, dataset loader). Use ONLY files
    present in the provided file listing or in the per-claim retrieved chunks.
@@ -45,12 +57,21 @@ paper, decide:
    add new claim-specific ones using the same schema.
 3. Feasibility for an independent reproduction with the given repo + paper:
    - "high": clear entry point, eval script, configs, no high-severity gaps.
-   - "medium": some pieces exist, one or two important gaps remain.
-   - "low": major pieces missing or no executable evidence in the repo.
-4. A short list of blockers (free-text strings) and optional notes.
+   - "medium": some pieces exist, one or two important gaps remain, or exact
+     reproduction needs careful sourcing/substitution.
+   - "low": no executable evidence, missing metric/eval definition, private
+     unavailable artifacts, or an underspecified method that cannot be
+     reasonably reconstructed.
+4. A short list of blockers (free-text strings) and optional notes. Blockers
+   should be reserved for private/undisclosed/unnamed/metric-defining details.
+   Public datasets, model families, APIs, and ordinary eval scripts should be
+   described as next steps unless exact historical replication truly requires
+   author-only access.
 
 Then give an aggregate verdict: ``overall_feasibility``, ``risks`` (cross-
 cutting concerns), and ``next_steps`` (concrete things a human should do).
+Risks should distinguish exact paper-number reproduction from practical
+implementation of the method.
 
 Return strict JSON. Do NOT invent file paths.
 """
@@ -123,6 +144,7 @@ def audit_claims(
     benchmark: str,
     paper_title: str | None,
     paper_id: str | None,
+    paper_authors: list[str] | None = None,
     claims: list[Claim],
     overall_missing: list[MissingDetail],
     repo: RepoFiles,
@@ -134,6 +156,7 @@ def audit_claims(
             benchmark=benchmark,
             paper_title=paper_title,
             paper_id=paper_id,
+            paper_authors=paper_authors or [],
             repo_summary=repo_signals,
             claims=[],
             overall_missing=overall_missing,
@@ -234,6 +257,7 @@ def audit_claims(
         benchmark=benchmark,
         paper_title=paper_title,
         paper_id=paper_id,
+        paper_authors=paper_authors or [],
         repo_summary=repo_signals,
         claims=claim_audits,
         overall_missing=overall_missing,

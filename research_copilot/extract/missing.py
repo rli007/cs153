@@ -21,16 +21,35 @@ card), enumerate the implementation details that are MISSING or UNDERSPECIFIED
 and would block an independent researcher from reproducing the headline
 results.
 
+Assume the user is a competent SWE/research implementer: they can search the
+web, install libraries, read docs, download public models/datasets, run hosted
+model APIs, write glue code, and substitute a comparable public model when the
+goal is practical implementation rather than exact historical replication. Do
+not treat "not bundled in the repo" as missing by itself.
+
 Categories you may report (use these exact strings for ``category``):
 random_seed, hardware, data_split, hyperparameters, checkpoint,
 evaluation_script, data_preprocessing, training_recipe, license,
-compute_budget, other.
+compute_budget, model_architecture, dataset_details, code_availability,
+dependencies, other.
 
 Severity guide:
-- high: cannot reproduce without it (e.g., undisclosed eval split, undisclosed
-  proprietary checkpoint, no metric definition).
-- medium: causes meaningful drift (e.g., no seed, no exact hyperparameters).
-- low: nice-to-have (e.g., precise wall-clock, GPU model when CPU suffices).
+- high: truly blocks faithful reproduction because the detail is undisclosed,
+  proprietary/private, unavailable, or defines the metric/result itself
+  (e.g., undisclosed eval split, proprietary unreleased checkpoint, no metric
+  definition).
+- medium: causes meaningful drift but a skilled implementer can make a
+  reasonable attempt by sourcing public artifacts or choosing documented
+  substitutes (e.g., exact hyperparameters omitted, model family named but not
+  the precise checkpoint).
+- low: setup/documentation friction or nice-to-have precision (e.g., precise
+  wall-clock hardware, dependency pins, GPU model when similar hardware or API
+  access is enough).
+
+When a public model, dataset, or dependency can likely be found online from its
+name, either do not report it as missing or mark it low/medium as a sourcing
+task. Reserve high severity for details that a skilled implementer cannot
+reasonably recover without authors or private access.
 
 Each missing detail should include a ``description`` that says specifically
 what is missing, and ``evidence`` quotes (if any) from the paper text that
@@ -46,7 +65,8 @@ _SCHEMA_HINT = (
     'A JSON array of objects with shape: '
     '{"category": "random_seed"|"hardware"|"data_split"|"hyperparameters"|'
     '"checkpoint"|"evaluation_script"|"data_preprocessing"|"training_recipe"|'
-    '"license"|"compute_budget"|"other", '
+    '"license"|"compute_budget"|"model_architecture"|"dataset_details"|'
+    '"code_availability"|"dependencies"|"other", '
     '"description": str, '
     '"severity": "low"|"medium"|"high", '
     '"evidence": [{"quote": str, "location"?: str}]}'

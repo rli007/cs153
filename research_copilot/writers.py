@@ -97,6 +97,8 @@ def write_markdown(report: AuditReport, output_path: Path) -> None:
         lines.append(f"**Paper:** {report.paper_title}")
     if report.paper_id:
         lines.append(f"**Paper id:** `{report.paper_id}`")
+    if report.paper_authors:
+        lines.append(f"**Authors:** {', '.join(report.paper_authors)}")
     lines.append(f"**Benchmark target:** {report.benchmark}")
     lines.append(f"**Overall feasibility:** `{report.overall_feasibility}`")
     lines.append("")

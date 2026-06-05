@@ -181,6 +181,7 @@ class AuditReport(BaseModel):
     title: str = "Reproducibility Audit"
     paper_title: str | None = None
     paper_id: str | None = None
+    paper_authors: list[str] = Field(default_factory=list)
     benchmark: str
     repo_summary: RepoSignals
     claims: list[ClaimAudit]

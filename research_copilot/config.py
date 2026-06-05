@@ -34,7 +34,7 @@ PAPER_CACHE_DIR = Path(
 REQUESTS_PER_MINUTE = int(os.environ.get("RC_RPM", "18"))
 
 
-MODEL_ROUTES: dict[str, list[str]] = {
+_STANDARD_MODEL_ROUTES: dict[str, list[str]] = {
     "long_ingest": [
         "google/gemini-2.5-flash-lite",
         "deepseek/deepseek-v4-flash",
@@ -59,6 +59,58 @@ MODEL_ROUTES: dict[str, list[str]] = {
         "google/gemini-2.5-flash-lite",
         "deepseek/deepseek-v4-flash",
     ],
+}
+
+
+_PREMIUM_MODEL_ROUTES: dict[str, list[str]] = {
+    "long_ingest": [
+        "google/gemini-2.5-pro",
+        "openai/gpt-5-mini",
+        "google/gemini-2.5-flash",
+    ],
+    "extract": [
+        "openai/gpt-5-mini",
+        "google/gemini-2.5-pro",
+        "anthropic/claude-sonnet-4.5",
+        "google/gemini-2.5-flash",
+    ],
+    "code": [
+        "openai/gpt-5-mini",
+        "anthropic/claude-sonnet-4.5",
+        "qwen/qwen3-coder-30b-a3b-instruct",
+        "google/gemini-2.5-flash",
+    ],
+    "reason": [
+        "openai/gpt-5.1",
+        "openai/gpt-5",
+        "anthropic/claude-sonnet-4.5",
+        "google/gemini-2.5-pro",
+    ],
+    "triage": [
+        "openai/gpt-5-mini",
+        "google/gemini-2.5-pro",
+        "google/gemini-2.5-flash",
+    ],
+}
+
+
+def _truthy(value: str | None) -> bool:
+    return value is not None and value.lower() not in {"0", "false", "no", "off"}
+
+
+def _route_override(role: str, fallback: list[str]) -> list[str]:
+    raw = os.environ.get(f"RC_{role.upper()}_MODELS")
+    if not raw:
+        return fallback
+    models = [item.strip() for item in raw.split(",") if item.strip()]
+    return models or fallback
+
+
+USE_PREMIUM_MODELS = _truthy(os.environ.get("RC_PREMIUM_MODELS", "0"))
+_BASE_ROUTES = _PREMIUM_MODEL_ROUTES if USE_PREMIUM_MODELS else _STANDARD_MODEL_ROUTES
+MODEL_ROUTES: dict[str, list[str]] = {
+    role: _route_override(role, models)
+    for role, models in _BASE_ROUTES.items()
 }
 
 
