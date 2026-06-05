@@ -1,0 +1,28 @@
+{
+  "name": "case-studies-v1",
+  "description": "Initial hand-curated case studies for the reproducibility audit pipeline. Add real papers + repos here as we scale up.",
+  "papers": [
+    {
+      "id": "sample-retrieval-classifier",
+      "paper": "examples/sample_paper.txt",
+      "repo": ".",
+      "benchmark": "reproduce the macro F1 improvement on the held-out validation split",
+      "model_card": "examples/sample_model_card.txt",
+      "reviews": null,
+      "ground_truth": {
+        "expected_claim_keywords": [
+          ["macro", "F1", "78.4"],
+          ["annotation"]
+        ],
+        "expected_missing_categories": [
+          "random_seed",
+          "hardware",
+          "checkpoint",
+          "data_preprocessing"
+        ],
+        "expected_code_links": {},
+        "min_feasibility": "low"
+      }
+    }
+  ]
+}

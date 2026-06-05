@@ -1,64 +1,71 @@
+"""Top-level orchestration for the reproducibility audit pipeline.
+
+The flow:
+
+1. Ingest the paper (text / pdf / arxiv) and the repo (local path or GitHub URL).
+2. (Optional) Build a local embedding index over the repo's text/code chunks.
+3. Ingest optional supplementary signals: HuggingFace model card, OpenReview reviews.
+4. LLM call: extract structured empirical claims from the paper.
+5. LLM call: detect missing reproducibility details from paper + model card + reviews.
+6. LLM call: enrich the filesystem repo signals (entry points, eval, configs).
+7. LLM call: audit each claim against the repo + retrieved code chunks.
+
+Total cost: ~4 cold LLM calls when the cache is cold; 0 when the inputs are
+unchanged. Embeddings run locally and are also disk-cached.
+"""
+
 from __future__ import annotations
 
-from dataclasses import asdict, dataclass
+from dataclasses import dataclass
 from pathlib import Path
 
-from research_copilot.extractors import extract_claims, identify_missing_details, read_text
-from research_copilot.repo_inspector import inspect_repo
+from research_copilot.audit import audit_claims
+from research_copilot.extract import (
+    detect_missing_details,
+    enrich_repo_signals,
+    extract_claims,
+)
+from research_copilot.ingest import (
+    load_model_card,
+    load_paper,
+    load_repo,
+    load_reviews,
+)
+from research_copilot.retrieve import build_index
+from research_copilot.schemas import AuditReport
 
 
 @dataclass(frozen=True)
 class CopilotInput:
-    paper_path: Path
-    repo_path: Path
+    paper: str | Path
+    repo: str | Path
     benchmark: str
-    model_card_path: Path | None = None
+    model_card: str | Path | None = None
+    reviews: str | Path | None = None
+    use_retrieval: bool = True
 
 
-@dataclass(frozen=True)
-class ReproductionPlan:
-    title: str
-    benchmark: str
-    claims: list[str]
-    missing_details: list[str]
-    repo_summary: dict[str, object]
-    experiment_steps: list[str]
-    generated_artifacts: list[str]
-    risks: list[str]
+def build_audit(inputs: CopilotInput) -> AuditReport:
+    paper = load_paper(inputs.paper)
+    model_card_text = load_model_card(inputs.model_card)
+    reviews_text = load_reviews(inputs.reviews)
+    repo = load_repo(inputs.repo)
 
-    def to_dict(self) -> dict[str, object]:
-        return asdict(self)
+    code_index = build_index(repo) if inputs.use_retrieval else None
 
+    supplementary = "\n\n".join(s for s in (model_card_text, reviews_text) if s)
 
-def build_reproduction_plan(inputs: CopilotInput) -> ReproductionPlan:
-    paper_text = read_text(inputs.paper_path)
-    model_card_text = read_text(inputs.model_card_path) if inputs.model_card_path else ""
-    repo_summary = inspect_repo(inputs.repo_path)
-    claims = extract_claims(paper_text)
-    missing_details = identify_missing_details(paper_text, model_card_text)
+    claims = extract_claims(paper)
+    missing = detect_missing_details(paper, supplementary)
+    repo_signals = enrich_repo_signals(repo)
 
-    return ReproductionPlan(
-        title="Research Artifact to Reproducible Workflow Plan",
+    return audit_claims(
         benchmark=inputs.benchmark,
+        paper_title=paper.metadata.get("title"),
+        paper_id=paper.metadata.get("arxiv_id"),
         claims=claims,
-        missing_details=missing_details,
-        repo_summary=repo_summary,
-        experiment_steps=[
-            "Confirm the target claim and metric definition.",
-            "Map repository entry points to training, inference, and evaluation commands.",
-            "Create a minimal environment file and smoke-test command.",
-            "Run a small-scale reproduction pass before attempting the full benchmark.",
-            "Compare observed metrics against the paper claim and record gaps.",
-        ],
-        generated_artifacts=[
-            "reproduction_plan.md",
-            "future: experiment config",
-            "future: run script",
-            "future: evaluation report",
-        ],
-        risks=[
-            "Paper text parsing is currently plain-text only.",
-            "Claim extraction uses heuristics and should be replaced with structured LLM extraction.",
-            "Experiment execution is planned but not yet automated.",
-        ],
+        overall_missing=missing,
+        repo=repo,
+        repo_signals=repo_signals,
+        code_index=code_index,
     )
