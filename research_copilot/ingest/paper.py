@@ -57,32 +57,61 @@ def _read_pdf(path: Path) -> tuple[str, list[str]]:
 
 
 def _fetch_arxiv(value: str) -> tuple[Path, dict]:
-    try:
-        import arxiv
-    except ImportError as exc:
-        raise RuntimeError(
-            "The `arxiv` package is required for arXiv ingest. Install with `pip install arxiv`."
-        ) from exc
+    """Fetch an arXiv paper via direct HTTPS (faster + no extra deps than the ``arxiv`` lib)."""
+
+    import httpx
 
     ensure_dirs()
     arxiv_id = _parse_arxiv_id(value)
     pdf_path = PAPER_CACHE_DIR / f"{arxiv_id}.pdf"
+    meta_path = PAPER_CACHE_DIR / f"{arxiv_id}.meta.json"
 
-    client = arxiv.Client(page_size=1, delay_seconds=3, num_retries=3)
-    search = arxiv.Search(id_list=[arxiv_id])
-    result = next(iter(client.results(search)))
+    metadata = {"arxiv_id": arxiv_id, "pdf_path": str(pdf_path)}
+    if meta_path.exists():
+        try:
+            import json as _json
+
+            metadata.update(_json.loads(meta_path.read_text(encoding="utf-8")))
+        except (OSError, ValueError):
+            pass
 
     if not pdf_path.exists():
-        result.download_pdf(dirpath=str(PAPER_CACHE_DIR), filename=pdf_path.name)
+        url = f"https://arxiv.org/pdf/{arxiv_id}"
+        with httpx.Client(timeout=60.0, follow_redirects=True) as client:
+            r = client.get(url)
+            r.raise_for_status()
+            pdf_path.write_bytes(r.content)
 
-    metadata = {
-        "arxiv_id": arxiv_id,
-        "title": result.title,
-        "authors": [a.name for a in result.authors],
-        "summary": result.summary,
-        "published": result.published.isoformat() if result.published else None,
-        "pdf_path": str(pdf_path),
-    }
+            try:
+                import re as _re
+
+                meta_url = f"http://export.arxiv.org/api/query?id_list={arxiv_id}"
+                rm = client.get(meta_url, timeout=20.0)
+                if rm.status_code == 200:
+                    text = rm.text
+                    title_m = _re.search(
+                        r"<entry>.*?<title>(.*?)</title>",
+                        text,
+                        flags=_re.DOTALL,
+                    )
+                    authors = _re.findall(r"<author>\s*<name>(.*?)</name>", text)
+                    summary_m = _re.search(
+                        r"<entry>.*?<summary>(.*?)</summary>",
+                        text,
+                        flags=_re.DOTALL,
+                    )
+                    if title_m:
+                        metadata["title"] = " ".join(title_m.group(1).split())
+                    if authors:
+                        metadata["authors"] = authors
+                    if summary_m:
+                        metadata["summary"] = " ".join(summary_m.group(1).split())
+                    import json as _json
+
+                    meta_path.write_text(_json.dumps(metadata, indent=2), encoding="utf-8")
+            except httpx.HTTPError:
+                pass
+
     return pdf_path, metadata
 
 

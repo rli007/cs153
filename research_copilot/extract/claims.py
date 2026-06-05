@@ -73,7 +73,7 @@ def extract_claims(paper: PaperText) -> list[Claim]:
         system=_SYSTEM,
         user=user,
         schema_hint=_SCHEMA_HINT,
-        max_tokens=4096,
+        max_tokens=8192,
     )
 
     if not isinstance(raw, list):

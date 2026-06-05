@@ -1,0 +1,561 @@
+{
+  "title": "Reproducibility Audit",
+  "paper_title": null,
+  "paper_id": "2312.00752",
+  "benchmark": "Reproduce the Mamba selective-state-space model on Pile language modeling and recover the perplexity from Table 4.",
+  "repo_summary": {
+    "path": "/Users/rli7/Desktop/cs153/.cache/repos/state-spaces__mamba",
+    "exists": true,
+    "important_files": [
+      "README.md",
+      "pyproject.toml",
+      "setup.py"
+    ],
+    "likely_entry_points": [
+      "benchmarks/benchmark_generation_mamba_simple.py",
+      "evals/lm_harness_eval.py"
+    ],
+    "likely_eval_scripts": [
+      "evals/lm_harness_eval.py"
+    ],
+    "likely_config_files": [
+      "mamba_ssm/models/config_mamba.py"
+    ],
+    "dependency_files": [
+      "pyproject.toml",
+      "setup.py"
+    ],
+    "has_tests": true,
+    "notes": [
+      "uses Hydra configs under configs/",
+      "no requirements file detected"
+    ]
+  },
+  "claims": [
+    {
+      "claim": {
+        "statement": "Mamba-3B model outperforms Transformers of the same size and matches Transformers twice its size on language modeling.",
+        "metric": null,
+        "dataset": null,
+        "baseline_name": "Transformer",
+        "method_name": "Mamba",
+        "evidence": [
+          {
+            "quote": "Onlanguagemodeling,ourMamba-3BmodeloutperformsTransformersofthesamesizeandmatchesTransformerstwiceitssize,bothinpretraininganddownstream evaluation.",
+            "location": null
+          }
+        ],
+        "is_main_claim": true
+      },
+      "code_links": [
+        {
+          "path": "evals/lm_harness_eval.py",
+          "role": "eval script",
+          "confidence": 0.8,
+          "rationale": "This script is explicitly named for LM evaluation and likely used to generate perplexity scores for language models like Mamba-3B."
+        },
+        {
+          "path": "mamba_ssm/models/config_mamba.py",
+          "role": "configs",
+          "confidence": 0.7,
+          "rationale": "This file likely defines the architecture and hyperparameters for different Mamba model sizes, including Mamba-3B."
+        }
+      ],
+      "missing": [
+        {
+          "category": "data_split",
+          "description": "While The Pile is mentioned, the exact splits for training, validation, and testing are not provided.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "Specific training details for the Mamba-3B model on Pile language modeling, such as total training steps, batch size, and specific learning rate schedule, are not fully specified.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "checkpoint",
+          "description": "The paper mentions open-sourcing checkpoints but does not provide direct links or specific details for the Mamba-3B model.",
+          "severity": "low",
+          "evidence": []
+        },
+        {
+          "category": "random_seed",
+          "description": "The random seeds used for training are not specified. This is crucial for reproducing the exact results, especially for models with stochastic components or initialization.",
+          "severity": "medium",
+          "evidence": []
+        }
+      ],
+      "feasibility": "medium",
+      "blockers": [
+        "Lack of specific training script for Mamba-3B on Pile",
+        "Missing exact data splits for The Pile",
+        "Absence of direct checkpoint links for Mamba-3B"
+      ],
+      "notes": "Reproducing the 'outperforms Transformers' aspect would also require access to the Transformer models and their training/evaluation setups, which are not part of this repo."
+    },
+    {
+      "claim": {
+        "statement": "Mamba achieves 5x generation throughput compared to Transformers of similar size.",
+        "metric": {
+          "name": "generation throughput",
+          "baseline_value": null,
+          "proposed_value": 5.0,
+          "delta": null,
+          "units": "x"
+        },
+        "dataset": null,
+        "baseline_name": "Transformer",
+        "method_name": "Mamba",
+        "evidence": [
+          {
+            "quote": "OurMambalanguagemodelhas5×generationthroughputcomparedtoTransformersofsimilarsize,andMamba-3B’squalitymatchesthatofTransformerstwiceitssize(e.g.4pointshigheravg.oncommon sensereasoningcomparedtoPythia-3BandevenexceedingPythia-7B).",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [
+        {
+          "path": "benchmarks/benchmark_generation_mamba_simple.py",
+          "role": "eval script",
+          "confidence": 0.9,
+          "rationale": "This script is explicitly designed for benchmarking generation speed of Mamba models, directly relevant to 'generation throughput'."
+        }
+      ],
+      "missing": [
+        {
+          "category": "hardware",
+          "description": "While A100 GPUs are mentioned for speed benchmarks, the specific hardware configuration (e.g., number of GPUs, interconnects) used for the main training runs is not detailed. This can impact training time and potentially reproducibility if specific hardware optimizations are assumed.",
+          "severity": "low",
+          "evidence": []
+        },
+        {
+          "category": "evaluation_script",
+          "description": "The exact configuration or script used for benchmarking the Transformer baseline for comparison is not provided within this repository.",
+          "severity": "medium",
+          "evidence": []
+        }
+      ],
+      "feasibility": "medium",
+      "blockers": [
+        "Lack of Transformer baseline benchmarking script/details",
+        "Specific hardware configuration for benchmarking not fully detailed"
+      ],
+      "notes": "The `benchmark_generation_mamba_simple.py` script provides a good starting point for Mamba's throughput, but the comparison to Transformers would require external resources or a similar script for Transformers."
+    },
+    {
+      "claim": {
+        "statement": "Mamba generalizes perfectly to million-length sequences on the induction heads task, extrapolating 4000x longer than seen during training.",
+        "metric": {
+          "name": "generalization to million-length sequences",
+          "baseline_value": null,
+          "proposed_value": 4000.0,
+          "delta": null,
+          "units": "x longer than training"
+        },
+        "dataset": {
+          "name": "induction heads",
+          "split": null,
+          "size": null
+        },
+        "baseline_name": null,
+        "method_name": "Mamba",
+        "evidence": [
+          {
+            "quote": "Itgeneralizesperfectlytomillion-lengthsequences,or4000×longerthanitsawduringtraining,whilenoothermethodgoesbeyond2×.",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [],
+      "missing": [
+        {
+          "category": "training_recipe",
+          "description": "The specific training setup, dataset generation, and evaluation script for the induction heads task are not present in the provided repository.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "data_split",
+          "description": "Details on how the 'million-length sequences' for the induction heads task were generated or split for evaluation are missing.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "evaluation_script",
+          "description": "A dedicated evaluation script for the induction heads task, especially for extrapolating to 4000x longer sequences, is not found.",
+          "severity": "high",
+          "evidence": []
+        }
+      ],
+      "feasibility": "low",
+      "blockers": [
+        "Missing dataset generation for induction heads task",
+        "Missing training script for induction heads task",
+        "Missing evaluation script for induction heads task"
+      ],
+      "notes": "This claim refers to a synthetic task, and the necessary code for generating the task, training, and evaluating on it is not present in the repo."
+    },
+    {
+      "claim": {
+        "statement": "Mamba is the first attention-free model to match the performance of a strong Transformer recipe (Transformer++) as sequence length grows.",
+        "metric": null,
+        "dataset": {
+          "name": "the Pile",
+          "split": null,
+          "size": null
+        },
+        "baseline_name": "Transformer++",
+        "method_name": "Mamba",
+        "evidence": [
+          {
+            "quote": "Mambaisthefirstattention-freemodeltomatchtheperformanceofaverystrongTransformer recipe(Transformer++)thathasnowbecomestandard,particularlyasthesequencelengthgrows.",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [
+        {
+          "path": "evals/lm_harness_eval.py",
+          "role": "eval script",
+          "confidence": 0.8,
+          "rationale": "This script is likely used for evaluating language models on datasets like The Pile, which is relevant for assessing performance as sequence length grows."
+        },
+        {
+          "path": "mamba_ssm/models/config_mamba.py",
+          "role": "configs",
+          "confidence": 0.7,
+          "rationale": "This file would define the Mamba model architecture used for evaluation on The Pile."
+        }
+      ],
+      "missing": [
+        {
+          "category": "data_split",
+          "description": "While The Pile is mentioned, the exact splits for training, validation, and testing are not provided, especially for evaluating performance across varying sequence lengths.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "Specific training details for Mamba models on The Pile, particularly how sequence length variations were handled during training or evaluation, are not fully specified.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "evaluation_script",
+          "description": "The specific methodology or script for evaluating 'as sequence length grows' and comparing against 'Transformer++' is not detailed or provided.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "checkpoint",
+          "description": "Checkpoints for the Mamba models evaluated on The Pile are not directly provided.",
+          "severity": "low",
+          "evidence": []
+        }
+      ],
+      "feasibility": "medium",
+      "blockers": [
+        "Missing specific evaluation methodology for varying sequence lengths",
+        "Lack of 'Transformer++' baseline implementation or evaluation details",
+        "Missing exact data splits for The Pile"
+      ],
+      "notes": "This claim involves a comparison to 'Transformer++', which is not part of this repository. The evaluation of performance 'as sequence length grows' would require specific evaluation protocols not explicitly detailed."
+    },
+    {
+      "claim": {
+        "statement": "Mamba-1.4B achieves 71.67% accuracy on the Great Apes DNA Classification task at sequence length 1M, outperforming HyenaDNA.",
+        "metric": {
+          "name": "accuracy",
+          "baseline_value": null,
+          "proposed_value": 71.67,
+          "delta": null,
+          "units": "%"
+        },
+        "dataset": {
+          "name": "Great Apes DNA Classification",
+          "split": null,
+          "size": "1M"
+        },
+        "baseline_name": "HyenaDNA",
+        "method_name": "Mamba",
+        "evidence": [
+          {
+            "quote": "Mamba 1.4M 31.47 27.50 27.66 40.72 42.41 71.67",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [],
+      "missing": [
+        {
+          "category": "data_preprocessing",
+          "description": "Details on how the Great Apes DNA Classification dataset is loaded, preprocessed, and tokenized for Mamba are missing.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "The specific training script and hyperparameters for Mamba-1.4B on the Great Apes DNA Classification task are not provided.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "evaluation_script",
+          "description": "A dedicated evaluation script for the Great Apes DNA Classification task, including how accuracy is calculated for 1M sequence length, is not present.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "data_split",
+          "description": "The exact splits for the Great Apes DNA Classification dataset are not provided.",
+          "severity": "high",
+          "evidence": []
+        }
+      ],
+      "feasibility": "low",
+      "blockers": [
+        "Missing dataset loader and preprocessing for DNA classification",
+        "Missing training script for DNA classification",
+        "Missing evaluation script for DNA classification"
+      ],
+      "notes": "This claim refers to a specific downstream task (DNA classification) for which no direct code or configuration is found in the repository."
+    },
+    {
+      "claim": {
+        "statement": "A small Mamba model (6.1M parameters) outperforms state-of-the-art models on the SC09 speech generation dataset with an FID of 0.94.",
+        "metric": {
+          "name": "FID",
+          "baseline_value": null,
+          "proposed_value": 0.94,
+          "delta": null,
+          "units": null
+        },
+        "dataset": {
+          "name": "SC09",
+          "split": null,
+          "size": null
+        },
+        "baseline_name": "SaShiMi",
+        "method_name": "Mamba",
+        "evidence": [
+          {
+            "quote": "Mamba 6.1M 1.852 0.94 6.26 88.54 0.52",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [],
+      "missing": [
+        {
+          "category": "data_preprocessing",
+          "description": "Details on how the SC09 speech generation dataset is loaded, preprocessed (e.g., mu-law encoding parameters), and prepared for Mamba are missing.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "The specific training script and hyperparameters for the small Mamba model (6.1M parameters) on the SC09 dataset are not provided.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "evaluation_script",
+          "description": "A dedicated evaluation script for speech generation, including FID calculation, is not present in the repository.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "data_split",
+          "description": "The exact splits for the SC09 dataset are not provided.",
+          "severity": "high",
+          "evidence": []
+        }
+      ],
+      "feasibility": "low",
+      "blockers": [
+        "Missing dataset loader and preprocessing for speech generation",
+        "Missing training script for speech generation",
+        "Missing evaluation script for speech generation (FID calculation)"
+      ],
+      "notes": "This claim refers to an audio generation task for which no direct code or configuration is found in the repository."
+    },
+    {
+      "claim": {
+        "statement": "Mamba achieves 4-5x higher inference throughput than a Transformer of similar size.",
+        "metric": {
+          "name": "inference throughput",
+          "baseline_value": null,
+          "proposed_value": 4.5,
+          "delta": null,
+          "units": "x"
+        },
+        "dataset": null,
+        "baseline_name": "Transformer",
+        "method_name": "Mamba",
+        "evidence": [
+          {
+            "quote": "Mambaachieves4-5×higherinferencethroughputthanaTransformerofsimilarsize, sincewithouttheKV cache it can use much higher batch sizes.",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [
+        {
+          "path": "benchmarks/benchmark_generation_mamba_simple.py",
+          "role": "eval script",
+          "confidence": 0.9,
+          "rationale": "This script is explicitly designed for benchmarking generation speed of Mamba models, directly relevant to 'inference throughput'."
+        }
+      ],
+      "missing": [
+        {
+          "category": "hardware",
+          "description": "While A100 GPUs are mentioned for speed benchmarks, the specific hardware configuration (e.g., number of GPUs, interconnects) used for the main training runs is not detailed. This can impact training time and potentially reproducibility if specific hardware optimizations are assumed.",
+          "severity": "low",
+          "evidence": []
+        },
+        {
+          "category": "evaluation_script",
+          "description": "The exact configuration or script used for benchmarking the Transformer baseline for comparison is not provided within this repository.",
+          "severity": "medium",
+          "evidence": []
+        }
+      ],
+      "feasibility": "medium",
+      "blockers": [
+        "Lack of Transformer baseline benchmarking script/details",
+        "Specific hardware configuration for benchmarking not fully detailed"
+      ],
+      "notes": "This claim is very similar to claim 1, focusing on inference throughput. The same `benchmark_generation_mamba_simple.py` script is relevant."
+    }
+  ],
+  "overall_missing": [
+    {
+      "category": "random_seed",
+      "description": "The random seeds used for training are not specified. This is crucial for reproducing the exact results, especially for models with stochastic components or initialization.",
+      "severity": "medium",
+      "evidence": []
+    },
+    {
+      "category": "hardware",
+      "description": "While A100 GPUs are mentioned for speed benchmarks, the specific hardware configuration (e.g., number of GPUs, interconnects) used for the main training runs is not detailed. This can impact training time and potentially reproducibility if specific hardware optimizations are assumed.",
+      "severity": "low",
+      "evidence": [
+        {
+          "quote": "The resulting implementation is faster than previous methods both in theory (scaling linearly in sequence length, compared to pseudo-linear for all convolution-based SSMs) and on modern hardware (up to 3x faster on A100 GPUs).",
+          "location": "Page 2"
+        },
+        {
+          "quote": "We measure with BF16 inputs, which is the data type most commonly used for large scale training.",
+          "location": "Page 35"
+        }
+      ]
+    },
+    {
+      "category": "data_split",
+      "description": "While the datasets used (e.g., The Pile, HG38, YouTubeMix, SC09) are mentioned, the exact splits for training, validation, and testing are not provided. This is particularly important for downstream evaluation tasks.",
+      "severity": "high",
+      "evidence": []
+    },
+    {
+      "category": "hyperparameters",
+      "description": "While some hyperparameters like learning rate, weight decay, and optimizer are mentioned in the appendix, specific values for all experiments (e.g., for the synthetic tasks, audio generation) are not consistently provided or are described as sweeps without a definitive choice for reproduction. For instance, the learning rate sweep for Mamba in the DNA classification task is mentioned, but the final chosen LR is not explicitly stated for all models.",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "We use the AdamW optimizer with gradient clip value 1.0, weight decay 0.1, no dropout, and linear learning rate warmup with cosine decay.",
+          "location": "Page 29"
+        },
+        {
+          "quote": "The optimal Transformer and HyenaDNA learning rates were 2e-3 across all sizes. The optimal Mamba learning rate was 8e-3; note that Mamba performed better than baselines with matched learning rates (2e-3), but was more stable and improved even more at higher learning rates.",
+          "location": "Page 32"
+        },
+        {
+          "quote": "The learning rate used was 0.008 for Mamba and 0.001 for HyenaDNA; we initially attempted to use the same learning rate of 0.002 from the previous section for HyenaDNA, but found that it was unstable at the longest context length.",
+          "location": "Page 33"
+        }
+      ]
+    },
+    {
+      "category": "checkpoint",
+      "description": "The paper mentions that code and pre-trained checkpoints are open-sourced, but does not provide direct links or specific details about which checkpoints correspond to which experiments or model sizes. This makes it difficult to directly load and verify specific results.",
+      "severity": "low",
+      "evidence": [
+        {
+          "quote": "Model code and pre-trained checkpoints are open-sourced at https://github.com/state-spaces/mamba.",
+          "location": "Page 2"
+        }
+      ]
+    },
+    {
+      "category": "evaluation_script",
+      "description": "While evaluation metrics are mentioned (e.g., perplexity, accuracy, FID, IS, mIS, AM, NLL, BPB), the exact scripts or configurations used for running these evaluations, especially for downstream tasks, are not provided. The LM-evaluation-harness is mentioned, but specific configurations might be needed.",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "For downstream evaluation, we use the LM-evaluation-harness from EleutherAI (L. Gao, Tow, et al. 2021), as done by most work in this area.",
+          "location": "Page 33"
+        }
+      ]
+    },
+    {
+      "category": "data_preprocessing",
+      "description": "Details on data preprocessing, such as tokenization specifics (beyond mentioning GPT2 and GPT-NeoX tokenizers), normalization, and any specific cleaning or filtering steps for each modality (language, DNA, audio), are not fully elaborated. For example, the mu-law encoding for audio is mentioned, but the exact parameters or implementation details are missing.",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "The dataset consists of clips of upto 1 minute long, or length 960000, which is downsampled and divided into segments of any desired sequence length.",
+          "location": "Page 34"
+        },
+        {
+          "quote": "The data is mu-law encoded at 8 bits, so the model is modeling discrete tokens with a vocabulary size of 256.",
+          "location": "Page 34"
+        }
+      ]
+    },
+    {
+      "category": "training_recipe",
+      "description": "While some training recipes are described (e.g., AdamW optimizer, learning rate schedules, gradient clipping), specific details for all experiments, especially for the synthetic tasks and audio generation, are not fully specified. The appendix provides more details but might not cover every single experiment.",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "All training details are in Appendix E.2.",
+          "location": "Page 11"
+        },
+        {
+          "quote": "FullexperimentdetailsforthesetasksincludingtaskdetailsandtrainingprotocolareinAppendixE.1.",
+          "location": "Page 10"
+        }
+      ]
+    },
+    {
+      "category": "compute_budget",
+      "description": "The total compute budget (e.g., FLOPs, GPU hours) for training the various models, especially the larger language models, is not explicitly stated. While training steps and tokens are mentioned, a consolidated compute budget would aid reproducibility.",
+      "severity": "low",
+      "evidence": []
+    }
+  ],
+  "overall_feasibility": "low",
+  "risks": [
+    "Lack of comprehensive training scripts for specific models and tasks",
+    "Absence of dataset loaders and preprocessing for non-language tasks (DNA, audio)",
+    "Missing evaluation scripts for specialized metrics (FID, induction heads)",
+    "Reliance on external resources for baseline comparisons (Transformers, HyenaDNA, SaShiMi)",
+    "Incomplete hyperparameter details for various experiments"
+  ],
+  "next_steps": [
+    "Request full training scripts and configurations for Mamba-3B on The Pile.",
+    "Request dataset loaders and preprocessing steps for Great Apes DNA Classification and SC09.",
+    "Request evaluation scripts for induction heads task, DNA classification, and speech generation (FID).",
+    "Clarify specific hardware setups used for all benchmarks.",
+    "Obtain direct links to pre-trained checkpoints for all reported models."
+  ]
+}

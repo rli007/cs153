@@ -1,0 +1,628 @@
+{
+  "title": "Reproducibility Audit",
+  "paper_title": "Direct Preference Optimization: Your Language Model is Secretly a Reward Model",
+  "paper_id": "2305.18290",
+  "benchmark": "Reproduce DPO on the IMDB sentiment task and recover the win-rate vs PPO reported in Section 6.",
+  "repo_summary": {
+    "path": "/Users/rli7/Desktop/cs153/.cache/repos/eric-mitchell__direct-preference-optimization",
+    "exists": true,
+    "important_files": [
+      "README.md",
+      "requirements.txt",
+      "train.py"
+    ],
+    "likely_entry_points": [
+      "train.py"
+    ],
+    "likely_eval_scripts": [],
+    "likely_config_files": [
+      "config/config.yaml",
+      "config/loss/dpo.yaml",
+      "config/loss/sft.yaml",
+      "config/model/blank_model.yaml",
+      "config/model/gpt2-large.yaml",
+      "config/model/gpt2-xl.yaml",
+      "config/model/gptj.yaml",
+      "config/model/llama7b.yaml",
+      "config/model/pythia28.yaml",
+      "config/model/pythia69.yaml"
+    ],
+    "dependency_files": [
+      "requirements.txt"
+    ],
+    "has_tests": false,
+    "notes": [
+      "uses Hydra configs under config/",
+      "no requirements file detected"
+    ]
+  },
+  "claims": [
+    {
+      "claim": {
+        "statement": "DPO can fine-tune LMs to align with human preferences as well as or better than existing methods.",
+        "metric": null,
+        "dataset": null,
+        "baseline_name": "existing methods",
+        "method_name": "DPO",
+        "evidence": [
+          {
+            "quote": "OurexperimentsshowthatDPOcanfine-tune LMstoalignwithhumanpreferencesaswellasorbetterthanexistingmethods.",
+            "location": null
+          }
+        ],
+        "is_main_claim": true
+      },
+      "code_links": [
+        {
+          "path": "README.md",
+          "role": "training entry",
+          "confidence": 0.46,
+          "rationale": "The README introduces DPO and its variants, indicating the core algorithm implemented in the repo."
+        },
+        {
+          "path": "config/loss/dpo.yaml",
+          "role": "configs",
+          "confidence": 0.37,
+          "rationale": "This config file defines parameters specific to the DPO loss function, which is central to the claim."
+        },
+        {
+          "path": "trainers.py",
+          "role": "training entry",
+          "confidence": 0.25,
+          "rationale": "The `trainers.py` file contains the implementation of the DPO loss calculation, directly supporting the claim about DPO's functionality."
+        },
+        {
+          "path": "config/config.yaml",
+          "role": "configs",
+          "confidence": 0.2,
+          "rationale": "This general configuration file likely holds global training parameters relevant to DPO fine-tuning."
+        }
+      ],
+      "missing": [
+        {
+          "category": "data_preprocessing",
+          "description": "The paper mentions using datasets like IMDb, Reddit TL;DR, and Anthropic-HH, but does not detail the specific preprocessing steps applied to these datasets before they were used for training or evaluation. This could include tokenization details, handling of special characters, or any filtering applied.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "While the DPO loss function is described and a PyTorch implementation is provided, the full training recipe is not completely specified. This includes details on the number of training epochs or steps, how the reference model is initialized and updated (if applicable), and the exact procedure for sampling from the reference model.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "hyperparameters",
+          "description": "While some hyperparameters like beta and batch size are mentioned in Appendix B, the paper does not provide a comprehensive list of all hyperparameters used for training the models across all experiments. For example, learning rate schedules, optimizer parameters (beyond RMSprop), and specific values for other regularization techniques are not fully detailed.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "checkpoint",
+          "description": "The paper does not provide any information about saving or releasing model checkpoints. To reproduce the results, access to the trained model weights would be necessary.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "evaluation_script",
+          "description": "While the paper describes the evaluation methodology (e.g., using GPT-4 as a proxy for human evaluation, win rates), it does not provide the specific scripts or prompts used for evaluation. The exact prompts for GPT-4 are partially included in Appendix C.2, but the full evaluation pipeline and scoring logic are not detailed.",
+          "severity": "medium",
+          "evidence": []
+        }
+      ],
+      "feasibility": "medium",
+      "blockers": [
+        "Missing comprehensive hyperparameters",
+        "Missing full training recipe details",
+        "Missing evaluation scripts and prompts",
+        "No model checkpoints provided"
+      ],
+      "notes": "The core DPO implementation is present, but the full experimental setup for fine-tuning and evaluation against 'existing methods' is not fully detailed in the repo or paper."
+    },
+    {
+      "claim": {
+        "statement": "DPO exceeds PPO-based RLHF in ability to control sentiment of generations.",
+        "metric": null,
+        "dataset": null,
+        "baseline_name": "PPO-based RLHF",
+        "method_name": "DPO",
+        "evidence": [
+          {
+            "quote": "Notably,fine-tuningwithDPOexceedsPPO-basedRLHFinabilitytocontrolsen-timentofgenerations,andmatchesorimprovesresponsequalityinsummarization andsingle-turndialoguewhilebeingsubstantiallysimplertoimplementandtrain.",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [
+        {
+          "path": "README.md",
+          "role": "training entry",
+          "confidence": 0.45,
+          "rationale": "The README introduces DPO, which is the method being compared against PPO."
+        },
+        {
+          "path": "config/loss/dpo.yaml",
+          "role": "configs",
+          "confidence": 0.38,
+          "rationale": "This config defines the DPO loss parameters, essential for training the DPO model."
+        },
+        {
+          "path": "trainers.py",
+          "role": "training entry",
+          "confidence": 0.32,
+          "rationale": "Contains the DPO loss calculation and training logic."
+        },
+        {
+          "path": "trainers.py",
+          "role": "eval script",
+          "confidence": 0.18,
+          "rationale": "The `generate` method in `trainers.py` is used for generating responses, which would be evaluated for sentiment control. This is a component of the evaluation process."
+        }
+      ],
+      "missing": [
+        {
+          "category": "data_preprocessing",
+          "description": "The paper mentions using datasets like IMDb, Reddit TL;DR, and Anthropic-HH, but does not detail the specific preprocessing steps applied to these datasets before they were used for training or evaluation. This could include tokenization details, handling of special characters, or any filtering applied.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "While the DPO loss function is described and a PyTorch implementation is provided, the full training recipe is not completely specified. This includes details on the number of training epochs or steps, how the reference model is initialized and updated (if applicable), and the exact procedure for sampling from the reference model.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "hyperparameters",
+          "description": "While some hyperparameters like beta and batch size are mentioned in Appendix B, the paper does not provide a comprehensive list of all hyperparameters used for training the models across all experiments. For example, learning rate schedules, optimizer parameters (beyond RMSprop), and specific values for other regularization techniques are not fully detailed.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "checkpoint",
+          "description": "The paper does not provide any information about saving or releasing model checkpoints. To reproduce the results, access to the trained model weights would be necessary.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "evaluation_script",
+          "description": "While the paper describes the evaluation methodology (e.g., using GPT-4 as a proxy for human evaluation, win rates), it does not provide the specific scripts or prompts used for evaluation. The exact prompts for GPT-4 are partially included in Appendix C.2, but the full evaluation pipeline and scoring logic are not detailed.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "data_split",
+          "description": "While the paper mentions using the IMDb dataset for sentiment generation and the Reddit TL;DR dataset for summarization, it does not specify how these datasets were split into training, validation, and testing sets. This information is crucial for reproducing the experiments.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "The paper does not provide details on how the PPO baseline was trained or if its implementation is included in the repo, which is crucial for a comparative claim.",
+          "severity": "high",
+          "evidence": []
+        }
+      ],
+      "feasibility": "low",
+      "blockers": [
+        "Missing PPO baseline implementation or training details",
+        "Missing comprehensive hyperparameters for DPO and PPO",
+        "Missing evaluation scripts for sentiment control",
+        "No model checkpoints provided"
+      ],
+      "notes": "The repo focuses on DPO. Reproducing a comparison against PPO would require either the PPO implementation or detailed instructions for its training, which are not present. The evaluation methodology for 'sentiment control' is also not fully specified."
+    },
+    {
+      "claim": {
+        "statement": "DPO matches or improves response quality in summarization and single-turn dialogue compared to PPO-based RLHF.",
+        "metric": null,
+        "dataset": null,
+        "baseline_name": "PPO-based RLHF",
+        "method_name": "DPO",
+        "evidence": [
+          {
+            "quote": "Notably,fine-tuningwithDPOexceedsPPO-basedRLHFinabilitytocontrolsen-timentofgenerations,andmatchesorimprovesresponsequalityinsummarization andsingle-turndialoguewhilebeingsubstantiallysimplertoimplementandtrain.",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [
+        {
+          "path": "README.md",
+          "role": "training entry",
+          "confidence": 0.3,
+          "rationale": "The README introduces DPO, the method under comparison."
+        },
+        {
+          "path": "preference_datasets.py",
+          "role": "dataset loader",
+          "confidence": 0.28,
+          "rationale": "This file contains logic for loading preference datasets, including those potentially used for summarization and dialogue (e.g., Anthropic HH)."
+        },
+        {
+          "path": "config/loss/dpo.yaml",
+          "role": "configs",
+          "confidence": 0.25,
+          "rationale": "Defines the DPO loss parameters, central to the DPO training."
+        },
+        {
+          "path": "trainers.py",
+          "role": "training entry",
+          "confidence": 0.24,
+          "rationale": "Contains the DPO loss calculation and training logic."
+        },
+        {
+          "path": "trainers.py",
+          "role": "eval script",
+          "confidence": 0.22,
+          "rationale": "The `trainers.py` file includes logic for generating samples during evaluation, which would be used to assess response quality."
+        }
+      ],
+      "missing": [
+        {
+          "category": "data_preprocessing",
+          "description": "The paper mentions using datasets like IMDb, Reddit TL;DR, and Anthropic-HH, but does not detail the specific preprocessing steps applied to these datasets before they were used for training or evaluation. This could include tokenization details, handling of special characters, or any filtering applied.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "While the DPO loss function is described and a PyTorch implementation is provided, the full training recipe is not completely specified. This includes details on the number of training epochs or steps, how the reference model is initialized and updated (if applicable), and the exact procedure for sampling from the reference model.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "hyperparameters",
+          "description": "While some hyperparameters like beta and batch size are mentioned in Appendix B, the paper does not provide a comprehensive list of all hyperparameters used for training the models across all experiments. For example, learning rate schedules, optimizer parameters (beyond RMSprop), and specific values for other regularization techniques are not fully detailed.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "checkpoint",
+          "description": "The paper does not provide any information about saving or releasing model checkpoints. To reproduce the results, access to the trained model weights would be necessary.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "evaluation_script",
+          "description": "While the paper describes the evaluation methodology (e.g., using GPT-4 as a proxy for human evaluation, win rates), it does not provide the specific scripts or prompts used for evaluation. The exact prompts for GPT-4 are partially included in Appendix C.2, but the full evaluation pipeline and scoring logic are not detailed.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "data_split",
+          "description": "While the paper mentions using the IMDb dataset for sentiment generation and the Reddit TL;DR dataset for summarization, it does not specify how these datasets were split into training, validation, and testing sets. This information is crucial for reproducing the experiments.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "The paper does not provide details on how the PPO baseline was trained or if its implementation is included in the repo, which is crucial for a comparative claim.",
+          "severity": "high",
+          "evidence": []
+        }
+      ],
+      "feasibility": "low",
+      "blockers": [
+        "Missing PPO baseline implementation or training details",
+        "Missing comprehensive hyperparameters for DPO and PPO",
+        "Missing evaluation scripts for response quality (summarization, dialogue)",
+        "No model checkpoints provided"
+      ],
+      "notes": "Similar to claim 1, the lack of PPO implementation/details and comprehensive evaluation scripts for summarization and dialogue quality makes this claim difficult to reproduce."
+    },
+    {
+      "claim": {
+        "statement": "DPO has a win rate of approximately 61% at a temperature of 0.0, exceeding the performance of PPO at 57% at its optimal sampling temperature of 0.0 in TL;DR summarization.",
+        "metric": {
+          "name": "win rate",
+          "baseline_value": 57.0,
+          "proposed_value": 61.0,
+          "delta": null,
+          "units": "%"
+        },
+        "dataset": {
+          "name": "TL;DR Summarization",
+          "split": null,
+          "size": null
+        },
+        "baseline_name": "PPO",
+        "method_name": "DPO",
+        "evidence": [
+          {
+            "quote": "WefindthatDPOhasawinrateofapproximately61%ata temperatureof0.0,exceedingtheperformanceofPPOat 57%atitsoptimalsamplingtemperature of 0.0.",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [
+        {
+          "path": "config/loss/dpo.yaml",
+          "role": "configs",
+          "confidence": 0.45,
+          "rationale": "This config defines the DPO loss parameters, essential for training the DPO model."
+        },
+        {
+          "path": "README.md",
+          "role": "training entry",
+          "confidence": 0.43,
+          "rationale": "The README introduces DPO, the method under comparison."
+        },
+        {
+          "path": "trainers.py",
+          "role": "training entry",
+          "confidence": 0.42,
+          "rationale": "Contains the DPO loss calculation and training logic."
+        },
+        {
+          "path": "trainers.py",
+          "role": "eval script",
+          "confidence": 0.28,
+          "rationale": "The `trainers.py` file includes logic for generating samples during evaluation, which would be used to assess win rates."
+        }
+      ],
+      "missing": [
+        {
+          "category": "data_preprocessing",
+          "description": "The paper mentions using datasets like IMDb, Reddit TL;DR, and Anthropic-HH, but does not detail the specific preprocessing steps applied to these datasets before they were used for training or evaluation. This could include tokenization details, handling of special characters, or any filtering applied.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "While the DPO loss function is described and a PyTorch implementation is provided, the full training recipe is not completely specified. This includes details on the number of training epochs or steps, how the reference model is initialized and updated (if applicable), and the exact procedure for sampling from the reference model.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "hyperparameters",
+          "description": "While some hyperparameters like beta and batch size are mentioned in Appendix B, the paper does not provide a comprehensive list of all hyperparameters used for training the models across all experiments. For example, learning rate schedules, optimizer parameters (beyond RMSprop), and specific values for other regularization techniques are not fully detailed.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "checkpoint",
+          "description": "The paper does not provide any information about saving or releasing model checkpoints. To reproduce the results, access to the trained model weights would be necessary.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "evaluation_script",
+          "description": "While the paper describes the evaluation methodology (e.g., using GPT-4 as a proxy for human evaluation, win rates), it does not provide the specific scripts or prompts used for evaluation. The exact prompts for GPT-4 are partially included in Appendix C.2, but the full evaluation pipeline and scoring logic are not detailed.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "data_split",
+          "description": "While the paper mentions using the IMDb dataset for sentiment generation and the Reddit TL;DR dataset for summarization, it does not specify how these datasets were split into training, validation, and testing sets. This information is crucial for reproducing the experiments.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "The paper does not provide details on how the PPO baseline was trained or if its implementation is included in the repo, which is crucial for a comparative claim.",
+          "severity": "high",
+          "evidence": []
+        }
+      ],
+      "feasibility": "low",
+      "blockers": [
+        "Missing PPO baseline implementation or training details",
+        "Missing comprehensive hyperparameters for DPO and PPO",
+        "Missing evaluation scripts for win rate calculation (especially GPT-4 prompts and scoring)",
+        "No model checkpoints provided",
+        "Missing TL;DR dataset split details"
+      ],
+      "notes": "This claim is highly specific with numerical results. Reproducing it requires precise details on both DPO and PPO training, the exact TL;DR dataset split, and the full evaluation pipeline, including the GPT-4 prompts and win-rate calculation logic, none of which are fully provided."
+    },
+    {
+      "claim": {
+        "statement": "DPO is the only computationally efficient method that improves over the preferred completions in the Anthropic HH dataset.",
+        "metric": null,
+        "dataset": {
+          "name": "Anthropic HH Dialogue",
+          "split": null,
+          "size": null
+        },
+        "baseline_name": "preferred completions",
+        "method_name": "DPO",
+        "evidence": [
+          {
+            "quote": "Overall,DPOisthe onlycomputationallyefficientmethodthatimprovesoverthepreferredcompletionsintheAnthropic HHdataset,andprovidessimilarorbetterperformancetothecomputationallydemandingBestof 128baseline.",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [
+        {
+          "path": "README.md",
+          "role": "training entry",
+          "confidence": 0.39,
+          "rationale": "The README introduces DPO, the method central to the claim."
+        },
+        {
+          "path": "config/loss/dpo.yaml",
+          "role": "configs",
+          "confidence": 0.28,
+          "rationale": "This config defines the DPO loss parameters, essential for training the DPO model."
+        },
+        {
+          "path": "preference_datasets.py",
+          "role": "dataset loader",
+          "confidence": 0.26,
+          "rationale": "This file explicitly loads the 'Anthropic/hh-rlhf' dataset, which is mentioned in the claim."
+        },
+        {
+          "path": "trainers.py",
+          "role": "training entry",
+          "confidence": 0.24,
+          "rationale": "Contains the DPO loss calculation and training logic."
+        }
+      ],
+      "missing": [
+        {
+          "category": "data_preprocessing",
+          "description": "The paper mentions using datasets like IMDb, Reddit TL;DR, and Anthropic-HH, but does not detail the specific preprocessing steps applied to these datasets before they were used for training or evaluation. This could include tokenization details, handling of special characters, or any filtering applied.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "While the DPO loss function is described and a PyTorch implementation is provided, the full training recipe is not completely specified. This includes details on the number of training epochs or steps, how the reference model is initialized and updated (if applicable), and the exact procedure for sampling from the reference model.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "hyperparameters",
+          "description": "While some hyperparameters like beta and batch size are mentioned in Appendix B, the paper does not provide a comprehensive list of all hyperparameters used for training the models across all experiments. For example, learning rate schedules, optimizer parameters (beyond RMSprop), and specific values for other regularization techniques are not fully detailed.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "checkpoint",
+          "description": "The paper does not provide any information about saving or releasing model checkpoints. To reproduce the results, access to the trained model weights would be necessary.",
+          "severity": "high",
+          "evidence": []
+        },
+        {
+          "category": "evaluation_script",
+          "description": "While the paper describes the evaluation methodology (e.g., using GPT-4 as a proxy for human evaluation, win rates), it does not provide the specific scripts or prompts used for evaluation. The exact prompts for GPT-4 are partially included in Appendix C.2, but the full evaluation pipeline and scoring logic are not detailed.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "The claim refers to 'other computationally efficient methods' and 'preferred completions'. The paper does not provide details on how these baselines were established or if their implementations are included in the repo, which is crucial for a comparative claim.",
+          "severity": "high",
+          "evidence": []
+        }
+      ],
+      "feasibility": "low",
+      "blockers": [
+        "Missing details on 'other computationally efficient methods' and 'preferred completions' baselines",
+        "Missing comprehensive hyperparameters for DPO",
+        "Missing evaluation scripts for comparison on Anthropic HH",
+        "No model checkpoints provided"
+      ],
+      "notes": "While the Anthropic HH dataset loader is present, the claim is comparative against unspecified 'other computationally efficient methods' and 'preferred completions'. The methodology for establishing these baselines and the evaluation process for comparison are not detailed."
+    }
+  ],
+  "overall_missing": [
+    {
+      "category": "random_seed",
+      "description": "The paper mentions using random seeds for preferred-FT in the sentiment experiments, but does not specify the seeds used or if they were used for other experiments. Reproducing the exact results would require knowing the seeds for all experiments.",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "usingadifferenthyperparameterforpolicyconservativenessineachrun (target KL ∈ {3,6,9,12} for PPO, β ∈ {0.05,0.1,0.5,1} for unlikelihood, random seeds for preferred-FT).",
+          "location": "Section 6.1"
+        }
+      ]
+    },
+    {
+      "category": "hardware",
+      "description": "The paper mentions using GPU clusters for experiments but does not specify the hardware configuration (e.g., number of GPUs, GPU model, interconnects) used for training the models, which could impact training time and potentially reproducibility if specific hardware optimizations were made.",
+      "severity": "low",
+      "evidence": []
+    },
+    {
+      "category": "data_split",
+      "description": "While the paper mentions using the IMDb dataset for sentiment generation and the Reddit TL;DR dataset for summarization, it does not specify how these datasets were split into training, validation, and testing sets. This information is crucial for reproducing the experiments.",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "ForSFT,wefine-tuneGPT-2-largeuntilconvergence onreviewsfromthetrainsplitoftheIMDBdataset(furtherdetailsinAppC.1).",
+          "location": "Section 6"
+        },
+        {
+          "quote": "Followingpriorwork,weusetheRedditTL;DRsummarizationdataset[43]alongwithhumanpreferencesgatheredbyStiennonetal..",
+          "location": "Section 6"
+        }
+      ]
+    },
+    {
+      "category": "hyperparameters",
+      "description": "While some hyperparameters like beta and batch size are mentioned in Appendix B, the paper does not provide a comprehensive list of all hyperparameters used for training the models across all experiments. For example, learning rate schedules, optimizer parameters (beyond RMSprop), and specific values for other regularization techniques are not fully detailed.",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "Unless noted otherwise, we use a β = 0.1, batch size of 64 and the RMSprop optimizer with a learningrateof1e-6bydefault. Welinearlywarmupthelearningratefrom0to1e-6over150steps. ForTL;DRsummarization,weuseβ =0.5,whilerestoftheparametersremainthesame.",
+          "location": "Appendix B"
+        },
+        {
+          "quote": "This sweep includes 22 runs in total. After each 100trainingstepsuntilconvergence,weevaluateeachpolicyonasetoftestprompts,computing theaveragerewardunderthetruerewardfunctionaswellastheaveragesequence-levelKL3 with the reference policy KL(π ||π ).",
+          "location": "Section 6.1"
+        }
+      ]
+    },
+    {
+      "category": "checkpoint",
+      "description": "The paper does not provide any information about saving or releasing model checkpoints. To reproduce the results, access to the trained model weights would be necessary.",
+      "severity": "high",
+      "evidence": []
+    },
+    {
+      "category": "evaluation_script",
+      "description": "While the paper describes the evaluation methodology (e.g., using GPT-4 as a proxy for human evaluation, win rates), it does not provide the specific scripts or prompts used for evaluation. The exact prompts for GPT-4 are partially included in Appendix C.2, but the full evaluation pipeline and scoring logic are not detailed.",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "We use gpt-4-0314forallourexperiments. Theorderofsummariesorresponsesarerandomlychosenfor everyevaluation.",
+          "location": "Appendix C.2"
+        }
+      ]
+    },
+    {
+      "category": "data_preprocessing",
+      "description": "The paper mentions using datasets like IMDb, Reddit TL;DR, and Anthropic-HH, but does not detail the specific preprocessing steps applied to these datasets before they were used for training or evaluation. This could include tokenization details, handling of special characters, or any filtering applied.",
+      "severity": "medium",
+      "evidence": []
+    },
+    {
+      "category": "training_recipe",
+      "description": "While the DPO loss function is described and a PyTorch implementation is provided, the full training recipe is not completely specified. This includes details on the number of training epochs or steps, how the reference model is initialized and updated (if applicable), and the exact procedure for sampling from the reference model.",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "DPOoutline. ThegeneralDPOpipelineisasfollows: 1)Samplecompletionsy ,y ∼π (·|x) for every prompt x, label with human preferences to construct the offline dataset of preferences D ={x(i),y(i),y )(i)}N and2)optimizethelanguagemodelπ tominimizeL forthegiven π andDanddesiredβ. ref θ DPO ref",
+          "location": "Section 4"
+        },
+        {
+          "quote": "In practice, onewouldliketoreusepreferencedatasetspubliclyavailable, rather than generating samples and gathering human preferences. Since the preference datasets are sampled using πSFT, we initialize π = πSFT whenever available. However, when πSFT is not available, we initialize π by maximizing likelihood of preferred completions (x,y ), that is, π =argmax E [logπ(y |x)]. This procedure helps mitigate the distribution shift betweenthetruereferencedistributionwhichisunavailable,andπ usedbyDPO. ref ref π ref π x,yw∼D w",
+          "location": "Section 4"
+        }
+      ]
+    },
+    {
+      "category": "license",
+      "description": "The paper does not mention the license under which the code or models are released. This is important for understanding how the work can be reused and built upon.",
+      "severity": "low",
+      "evidence": []
+    },
+    {
+      "category": "compute_budget",
+      "description": "The paper mentions training models up to 6B parameters and using GPU clusters, but does not provide specific details on the computational resources (e.g., total GPU hours, number of GPUs used for each experiment) required to reproduce the results. This information is valuable for understanding the feasibility of reproducing the work.",
+      "severity": "low",
+      "evidence": []
+    }
+  ],
+  "overall_feasibility": "low",
+  "risks": [
+    "Lack of comprehensive hyperparameters for all experiments.",
+    "Absence of model checkpoints, requiring full retraining.",
+    "Missing detailed evaluation scripts and prompts, especially for human/GPT-4 evaluations and win-rate calculations.",
+    "Incomplete training recipes, particularly for baselines like PPO.",
+    "Unspecified data splits and preprocessing steps for datasets."
+  ],
+  "next_steps": [
+    "Request comprehensive hyperparameters for all reported experiments (DPO and baselines).",
+    "Request model checkpoints for DPO and PPO models used in the paper.",
+    "Request full evaluation scripts, including GPT-4 prompts and win-rate calculation logic.",
+    "Clarify the exact data splits and preprocessing steps for IMDb, TL;DR, and Anthropic-HH datasets.",
+    "Seek details on the implementation and training of PPO and other baseline methods for comparative claims."
+  ]
+}

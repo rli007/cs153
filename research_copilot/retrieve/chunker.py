@@ -127,6 +127,19 @@ def chunk_repo(
 ) -> list[CodeChunk]:
     """Walk the repo and produce a flat list of chunks ready to embed."""
 
+    skip_parts = {
+        ".git",
+        "__pycache__",
+        "node_modules",
+        ".venv",
+        "venv",
+        "dist",
+        "build",
+        ".cache",
+        ".tox",
+        ".mypy_cache",
+        ".pytest_cache",
+    }
     chunks: list[CodeChunk] = []
     seen = 0
     for path in repo.root.rglob("*"):
@@ -134,7 +147,11 @@ def chunk_repo(
             break
         if not path.is_file():
             continue
-        if any(part in {".git", "__pycache__", "node_modules", ".venv", "venv", "dist", "build", ".cache"} for part in path.parts):
+        try:
+            rel_path = path.relative_to(repo.root)
+        except ValueError:
+            continue
+        if any(part in skip_parts for part in rel_path.parts):
             continue
         suffix = path.suffix.lower()
         if suffix not in _CHUNKABLE_EXTS:
@@ -142,7 +159,7 @@ def chunk_repo(
         text = _read_safely(path)
         if text is None:
             continue
-        rel = str(path.relative_to(repo.root))
+        rel = str(rel_path)
         kind = _KIND_FOR_EXT.get(suffix, "code")
         chunks.extend(
             _chunk_text(rel, text, kind=kind, chunk_lines=chunk_lines, overlap_lines=overlap_lines)

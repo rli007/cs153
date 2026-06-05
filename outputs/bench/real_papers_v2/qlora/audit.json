@@ -1,0 +1,760 @@
+{
+  "title": "Reproducibility Audit",
+  "paper_title": null,
+  "paper_id": "2305.14314",
+  "benchmark": "Reproduce QLoRA fine-tuning of LLaMA-7B on Alpaca and recover the MMLU score from Table 6.",
+  "repo_summary": {
+    "path": "/Users/rli7/Desktop/cs153/.cache/repos/artidoro__qlora",
+    "exists": true,
+    "important_files": [
+      "README.md",
+      "requirements.txt"
+    ],
+    "likely_entry_points": [
+      "qlora.py"
+    ],
+    "likely_eval_scripts": [
+      "eval/eval_gpt_review.py",
+      "eval/qa_baseline_gpt.py"
+    ],
+    "likely_config_files": [],
+    "dependency_files": [
+      "eval/requirements.txt",
+      "requirements.txt"
+    ],
+    "has_tests": false,
+    "notes": [
+      "uses Hydra configs under configs/",
+      "no requirements file detected"
+    ]
+  },
+  "claims": [
+    {
+      "claim": {
+        "statement": "QLORA reduces memory usage enough to finetune a 65B parameter model on a single 48GB GPU while preserving full 16-bit finetuning task performance.",
+        "metric": null,
+        "dataset": null,
+        "baseline_name": null,
+        "method_name": "QLORA",
+        "evidence": [
+          {
+            "quote": "We present QLORA, an efficient finetuning approach that reduces memory usage enough to finetune a 65B parameter model on a single 48GB GPU while preserving full 16-bit finetuning task performance.",
+            "location": null
+          }
+        ],
+        "is_main_claim": true
+      },
+      "code_links": [
+        {
+          "path": "qlora.py",
+          "role": "training entry",
+          "confidence": 0.52,
+          "rationale": "This file contains the main training logic and arguments related to quantization and memory usage, such as `bnb_4bit_use_double_quant` and `per_device_train_batch_size`."
+        },
+        {
+          "path": "README.md",
+          "role": "explanation",
+          "confidence": 0.47,
+          "rationale": "The README introduces QLoRA and mentions its efficiency in finetuning quantized LLMs, aligning with the claim of reduced memory usage."
+        }
+      ],
+      "missing": [
+        {
+          "category": "hardware",
+          "description": "While the paper mentions using a single 48GB GPU for finetuning a 65B model and a single consumer GPU for a 33B model, the specific GPU model(s) used are not detailed. This information is important for understanding the practical limitations and potential for reproduction.",
+          "severity": "low",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "While the paper describes the QLoRA method and provides some training hyperparameters, the exact training recipe (e.g., optimizer state initialization, specific learning rate decay schedule if not constant, gradient accumulation steps if used, exact number of training steps/epochs for each model/dataset combination) is not fully specified for all experiments, making exact reproduction challenging.",
+          "severity": "medium",
+          "evidence": []
+        }
+      ],
+      "feasibility": "medium",
+      "blockers": [
+        "Specific GPU model used for 65B model training",
+        "Full training recipe details (e.g., exact number of steps, gradient accumulation)"
+      ],
+      "notes": null
+    },
+    {
+      "claim": {
+        "statement": "QLORA reduces the average memory requirements of finetuning a 65B parameter model from >780GB of GPU memory to <48GB without degrading the runtime or predictive performance compared to a 16-bit fully finetuned baseline.",
+        "metric": null,
+        "dataset": null,
+        "baseline_name": "16-bit fully finetuned baseline",
+        "method_name": "QLORA",
+        "evidence": [
+          {
+            "quote": "QLORA reduces the average memory requirements of finetuning a 65B parameter model from >780GB of GPU memory to <48GB without degrading the runtime or predictive performance compared to a 16-bit fully finetuned baseline.",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [
+        {
+          "path": "qlora.py",
+          "role": "training entry",
+          "confidence": 0.46,
+          "rationale": "This file contains the core QLoRA implementation, including parameters for 4-bit quantization (`bnb_4bit_use_double_quant`, `bnb_4bit_quant_type`) which directly relate to memory reduction."
+        },
+        {
+          "path": "README.md",
+          "role": "explanation",
+          "confidence": 0.46,
+          "rationale": "The README highlights QLoRA's efficiency in finetuning quantized LLMs, which is central to the claim about memory reduction."
+        }
+      ],
+      "missing": [
+        {
+          "category": "hardware",
+          "description": "While the paper mentions using a single 48GB GPU for finetuning a 65B model and a single consumer GPU for a 33B model, the specific GPU model(s) used are not detailed. This information is important for understanding the practical limitations and potential for reproduction.",
+          "severity": "low",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "While the paper describes the QLoRA method and provides some training hyperparameters, the exact training recipe (e.g., optimizer state initialization, specific learning rate decay schedule if not constant, gradient accumulation steps if used, exact number of training steps/epochs for each model/dataset combination) is not fully specified for all experiments, making exact reproduction challenging.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "evaluation_script",
+          "description": "The paper describes the evaluation methodology in detail, including the use of GPT-4 for pairwise comparisons and Elo ratings, and human evaluation. However, the actual scripts or code used for these evaluations are not explicitly provided or linked, which would be necessary to replicate the evaluation process precisely.",
+          "severity": "medium",
+          "evidence": []
+        }
+      ],
+      "feasibility": "medium",
+      "blockers": [
+        "Specific GPU model for 65B model training",
+        "Full training recipe details for the 16-bit baseline",
+        "Evaluation scripts for comparing predictive performance against a 16-bit baseline"
+      ],
+      "notes": null
+    },
+    {
+      "claim": {
+        "statement": "Using QLORA, the Guanaco family of models, with the second best model reaching 97.8% of the performance level of ChatGPT on the Vicuna benchmark, while being trainable in less than 12 hours on a single consumer GPU.",
+        "metric": {
+          "name": "performance relative to ChatGPT on Vicuna benchmark",
+          "baseline_value": null,
+          "proposed_value": 97.8,
+          "delta": null,
+          "units": "%"
+        },
+        "dataset": {
+          "name": "Vicuna benchmark",
+          "split": null,
+          "size": null
+        },
+        "baseline_name": null,
+        "method_name": "QLORA (Guanaco)",
+        "evidence": [
+          {
+            "quote": "Using QLORA, we train the Guanaco family of models, with the second best model reaching 97.8% of the performance level of ChatGPT on the Vicuna [10] benchmark, while being trainable in less than 12 hours on a single consumer GPU;",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [
+        {
+          "path": "eval/EVAL_README.md",
+          "role": "explanation",
+          "confidence": 0.44,
+          "rationale": "This README describes the evaluation process using GPT-4 and mentions the Vicuna benchmark queries, which are directly relevant to the claim's evaluation metric and dataset."
+        },
+        {
+          "path": "eval/qa_baseline_gpt.py",
+          "role": "eval script",
+          "confidence": 0.42,
+          "rationale": "This script is used to generate answers with GPT-3.5/GPT-4, which is a component of the Vicuna benchmark evaluation as described in the paper and `EVAL_README.md`."
+        },
+        {
+          "path": "scripts/finetune_guanaco_65b.sh",
+          "role": "training entry",
+          "confidence": 0.42,
+          "rationale": "This script shows how to finetune a Guanaco 65B model, which is part of the Guanaco family mentioned in the claim."
+        },
+        {
+          "path": "scripts/finetune_guanaco_13b.sh",
+          "role": "training entry",
+          "confidence": 0.42,
+          "rationale": "This script shows how to finetune a Guanaco 13B model, which is part of the Guanaco family mentioned in the claim."
+        },
+        {
+          "path": "scripts/finetune_guanaco_7b.sh",
+          "role": "training entry",
+          "confidence": 0.42,
+          "rationale": "This script shows how to finetune a Guanaco 7B model, which is part of the Guanaco family mentioned in the claim."
+        },
+        {
+          "path": "qlora.py",
+          "role": "training entry",
+          "confidence": 0.42,
+          "rationale": "This is the main training script for QLoRA models, which would be used to train the Guanaco models."
+        }
+      ],
+      "missing": [
+        {
+          "category": "evaluation_script",
+          "description": "The paper describes the evaluation methodology in detail, including the use of GPT-4 for pairwise comparisons and Elo ratings, and human evaluation. However, the actual scripts or code used for these evaluations are not explicitly provided or linked, which would be necessary to replicate the evaluation process precisely.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "While the paper describes the QLoRA method and provides some training hyperparameters, the exact training recipe (e.g., optimizer state initialization, specific learning rate decay schedule if not constant, gradient accumulation steps if used, exact number of training steps/epochs for each model/dataset combination) is not fully specified for all experiments, making exact reproduction challenging.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "hardware",
+          "description": "While the paper mentions using a single 48GB GPU for finetuning a 65B model and a single consumer GPU for a 33B model, the specific GPU model(s) used are not detailed. This information is important for understanding the practical limitations and potential for reproduction.",
+          "severity": "low",
+          "evidence": []
+        }
+      ],
+      "feasibility": "medium",
+      "blockers": [
+        "Full evaluation pipeline for Vicuna benchmark (beyond generation)",
+        "Specific consumer GPU model and its configuration",
+        "Exact training recipe for Guanaco models"
+      ],
+      "notes": null
+    },
+    {
+      "claim": {
+        "statement": "Using a single professional GPU over 24 hours we achieve 99.3% [of ChatGPT performance] with our largest model, essentially closing the gap to ChatGPT on the Vicuna benchmark.",
+        "metric": {
+          "name": "performance relative to ChatGPT on Vicuna benchmark",
+          "baseline_value": null,
+          "proposed_value": 99.3,
+          "delta": null,
+          "units": "%"
+        },
+        "dataset": {
+          "name": "Vicuna benchmark",
+          "split": null,
+          "size": null
+        },
+        "baseline_name": "ChatGPT",
+        "method_name": "QLORA (largest model)",
+        "evidence": [
+          {
+            "quote": "using a single professional GPU over 24 hours we achieve 99.3% with our largest model, essentially closing the gap to ChatGPT on the Vicuna bench- mark.",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [
+        {
+          "path": "eval/qa_baseline_gpt.py",
+          "role": "eval script",
+          "confidence": 0.42,
+          "rationale": "This script is used to generate answers with GPT-3.5/GPT-4, which is a component of the Vicuna benchmark evaluation as described in the paper and `EVAL_README.md`."
+        },
+        {
+          "path": "eval/EVAL_README.md",
+          "role": "explanation",
+          "confidence": 0.41,
+          "rationale": "This README describes the evaluation process using GPT-4 and mentions the Vicuna benchmark queries, which are directly relevant to the claim's evaluation metric and dataset."
+        },
+        {
+          "path": "qlora.py",
+          "role": "training entry",
+          "confidence": 0.41,
+          "rationale": "This is the main training script for QLoRA models, which would be used to train the largest Guanaco model."
+        },
+        {
+          "path": "eval/eval_gpt_review.py",
+          "role": "eval script",
+          "confidence": 0.37,
+          "rationale": "This script is for evaluating model responses using GPT-4, which is crucial for the Vicuna benchmark and comparing performance to ChatGPT."
+        }
+      ],
+      "missing": [
+        {
+          "category": "evaluation_script",
+          "description": "The paper describes the evaluation methodology in detail, including the use of GPT-4 for pairwise comparisons and Elo ratings, and human evaluation. However, the actual scripts or code used for these evaluations are not explicitly provided or linked, which would be necessary to replicate the evaluation process precisely.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "While the paper describes the QLoRA method and provides some training hyperparameters, the exact training recipe (e.g., optimizer state initialization, specific learning rate decay schedule if not constant, gradient accumulation steps if used, exact number of training steps/epochs for each model/dataset combination) is not fully specified for all experiments, making exact reproduction challenging.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "hardware",
+          "description": "While the paper mentions using a single 48GB GPU for finetuning a 65B model and a single consumer GPU for a 33B model, the specific GPU model(s) used are not detailed. This information is important for understanding the practical limitations and potential for reproduction.",
+          "severity": "low",
+          "evidence": []
+        }
+      ],
+      "feasibility": "medium",
+      "blockers": [
+        "Full evaluation pipeline for Vicuna benchmark (beyond generation)",
+        "Specific professional GPU model and its configuration",
+        "Exact training recipe for the largest Guanaco model"
+      ],
+      "notes": null
+    },
+    {
+      "claim": {
+        "statement": "When deployed, our smallest Guanaco model (7B parameters) requires just 5GB of memory and outperforms a 26GB Alpaca model by more than 20 percentage points on the Vicuna benchmark.",
+        "metric": {
+          "name": "performance on Vicuna benchmark",
+          "baseline_value": null,
+          "proposed_value": null,
+          "delta": 20.0,
+          "units": "percentage points"
+        },
+        "dataset": {
+          "name": "Vicuna benchmark",
+          "split": null,
+          "size": null
+        },
+        "baseline_name": "Alpaca 26GB model",
+        "method_name": "Guanaco 7B",
+        "evidence": [
+          {
+            "quote": "Whendeployed,oursmallestGuanacomodel(7Bparameters)requiresjust5GBofmemoryandoutperformsa26GBAlpacamodelbymorethan20percentagepointson theVicunabenchmark(Table6).",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [
+        {
+          "path": "scripts/finetune_guanaco_7b.sh",
+          "role": "training entry",
+          "confidence": 0.44,
+          "rationale": "This script demonstrates how to finetune the Guanaco 7B model, which is the subject of this claim."
+        },
+        {
+          "path": "eval/EVAL_README.md",
+          "role": "explanation",
+          "confidence": 0.43,
+          "rationale": "This README describes the evaluation process using GPT-4 and mentions the Vicuna benchmark queries, which are directly relevant to the claim's evaluation metric and dataset."
+        },
+        {
+          "path": "eval/generations/vicuna/7b-guanaco-vicuna-generations-topp0.9-temp0.7.jsonl",
+          "role": "eval data",
+          "confidence": 0.9,
+          "rationale": "This file contains generated responses for the 7B Guanaco model on the Vicuna benchmark, directly supporting the claim's evaluation."
+        },
+        {
+          "path": "eval/generations/vicuna/13b-alpaca-vicuna-generations-topp0.9-temp0.7.jsonl",
+          "role": "eval data",
+          "confidence": 0.9,
+          "rationale": "This file contains generated responses for an Alpaca model on the Vicuna benchmark, which could be used as a baseline for comparison."
+        }
+      ],
+      "missing": [
+        {
+          "category": "evaluation_script",
+          "description": "The paper describes the evaluation methodology in detail, including the use of GPT-4 for pairwise comparisons and Elo ratings, and human evaluation. However, the actual scripts or code used for these evaluations are not explicitly provided or linked, which would be necessary to replicate the evaluation process precisely.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "While the paper describes the QLoRA method and provides some training hyperparameters, the exact training recipe (e.g., optimizer state initialization, specific learning rate decay schedule if not constant, gradient accumulation steps if used, exact number of training steps/epochs for each model/dataset combination) is not fully specified for all experiments, making exact reproduction challenging.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "checkpoint",
+          "description": "The paper mentions releasing all models and code, and provides adapters for various model sizes. However, it does not explicitly state if full model checkpoints (not just adapters) are released or how to obtain them, which would be crucial for reproducing the exact finetuned models.",
+          "severity": "high",
+          "evidence": []
+        }
+      ],
+      "feasibility": "medium",
+      "blockers": [
+        "Full evaluation pipeline for Vicuna benchmark (beyond generation)",
+        "Exact training recipe for Guanaco 7B and Alpaca 26GB models",
+        "Access to the Alpaca 26GB model checkpoint for comparison"
+      ],
+      "notes": null
+    },
+    {
+      "claim": {
+        "statement": "NF4 improves performances significantly over FP4 and Int4 and that double quantization reduces the memory footprint without degrading performance.",
+        "metric": null,
+        "dataset": null,
+        "baseline_name": "FP4, Int4",
+        "method_name": "NF4 + DQ",
+        "evidence": [
+          {
+            "quote": "Wefigure3andTable2weseethatNF4improvesper- formancesignificantlyoverFP4andInt4andthat doublequantizationreducesthememoryfootprint withoutdegradingperformance.",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [
+        {
+          "path": "README.md",
+          "role": "explanation",
+          "confidence": 0.49,
+          "rationale": "The README explains the quantization parameters, including `bnb_4bit_use_double_quant` and `bnb_4bit_quant_type`, which are directly relevant to NF4, FP4, Int4, and double quantization."
+        },
+        {
+          "path": "qlora.py",
+          "role": "training entry",
+          "confidence": 0.33,
+          "rationale": "This file contains the implementation details for `bnb_4bit_use_double_quant` and `bnb_4bit_quant_type`, which control the quantization types (NF4, FP4, Int4) and double quantization."
+        }
+      ],
+      "missing": [
+        {
+          "category": "training_recipe",
+          "description": "While the paper describes the QLoRA method and provides some training hyperparameters, the exact training recipe (e.g., optimizer state initialization, specific learning rate decay schedule if not constant, gradient accumulation steps if used, exact number of training steps/epochs for each model/dataset combination) is not fully specified for all experiments, making exact reproduction challenging.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "evaluation_script",
+          "description": "The paper describes the evaluation methodology in detail, including the use of GPT-4 for pairwise comparisons and Elo ratings, and human evaluation. However, the actual scripts or code used for these evaluations are not explicitly provided or linked, which would be necessary to replicate the evaluation process precisely.",
+          "severity": "medium",
+          "evidence": []
+        }
+      ],
+      "feasibility": "medium",
+      "blockers": [
+        "Specific configurations (hyperparameters, datasets) used for comparing NF4, FP4, and Int4",
+        "Evaluation scripts to measure performance differences between quantization types"
+      ],
+      "notes": null
+    },
+    {
+      "claim": {
+        "statement": "NF4 with double quantization fully recovers the 16-bit LoRA MMLU performance.",
+        "metric": null,
+        "dataset": {
+          "name": "MMLU",
+          "split": null,
+          "size": null
+        },
+        "baseline_name": "16-bit LoRA",
+        "method_name": "NF4 + DQ",
+        "evidence": [
+          {
+            "quote": "We see that NF4 with double quantization fully recovers the 16-bit LoRA MMLU performance.",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [
+        {
+          "path": "README.md",
+          "role": "explanation",
+          "confidence": 0.53,
+          "rationale": "The README explains the quantization parameters, including `bnb_4bit_use_double_quant` and `bnb_4bit_quant_type`, which are directly relevant to NF4 and double quantization."
+        },
+        {
+          "path": "qlora.py",
+          "role": "training entry",
+          "confidence": 0.34,
+          "rationale": "This file contains the implementation details for `bnb_4bit_use_double_quant` and `bnb_4bit_quant_type`, which control the quantization types (NF4) and double quantization."
+        },
+        {
+          "path": "data/mmlu/five_shot_mmlu_test.json",
+          "role": "dataset loader",
+          "confidence": 0.9,
+          "rationale": "This file is a dataset for MMLU evaluation, directly relevant to the claim's metric."
+        },
+        {
+          "path": "data/mmlu/zero_shot_mmlu_test.json",
+          "role": "dataset loader",
+          "confidence": 0.9,
+          "rationale": "This file is a dataset for MMLU evaluation, directly relevant to the claim's metric."
+        }
+      ],
+      "missing": [
+        {
+          "category": "evaluation_script",
+          "description": "The paper describes the evaluation methodology in detail, including the use of GPT-4 for pairwise comparisons and Elo ratings, and human evaluation. However, the actual scripts or code used for these evaluations are not explicitly provided or linked, which would be necessary to replicate the evaluation process precisely.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "While the paper describes the QLoRA method and provides some training hyperparameters, the exact training recipe (e.g., optimizer state initialization, specific learning rate decay schedule if not constant, gradient accumulation steps if used, exact number of training steps/epochs for each model/dataset combination) is not fully specified for all experiments, making exact reproduction challenging.",
+          "severity": "medium",
+          "evidence": []
+        }
+      ],
+      "feasibility": "medium",
+      "blockers": [
+        "Specific MMLU evaluation script and methodology",
+        "Training recipe for 16-bit LoRA baseline for MMLU"
+      ],
+      "notes": null
+    },
+    {
+      "claim": {
+        "statement": "Guanaco 65B is the best-performing model after GPT-4, achieving 99.3% performance relative to ChatGPT.",
+        "metric": {
+          "name": "performance relative to ChatGPT",
+          "baseline_value": null,
+          "proposed_value": 99.3,
+          "delta": null,
+          "units": "%"
+        },
+        "dataset": {
+          "name": "Vicuna benchmark",
+          "split": null,
+          "size": null
+        },
+        "baseline_name": "ChatGPT",
+        "method_name": "Guanaco 65B",
+        "evidence": [
+          {
+            "quote": "The Vicunabenchmark[10]resultsrelativetoChatGPTareshowninTable6. WefindthatGuanaco 65Bisthebest-performingmodelafterGPT-4,achieving99.3%performancerelativetoChatGPT.",
+            "location": null
+          }
+        ],
+        "is_main_claim": false
+      },
+      "code_links": [
+        {
+          "path": "eval/EVAL_README.md",
+          "role": "explanation",
+          "confidence": 0.46,
+          "rationale": "This README describes the evaluation process using GPT-4 and mentions the Vicuna benchmark queries, which are directly relevant to the claim's evaluation metric and dataset."
+        },
+        {
+          "path": "eval/qa_baseline_gpt.py",
+          "role": "eval script",
+          "confidence": 0.41,
+          "rationale": "This script is used to generate answers with GPT-3.5/GPT-4, which is a component of the Vicuna benchmark evaluation as described in the paper and `EVAL_README.md`."
+        },
+        {
+          "path": "eval/eval_gpt_review.py",
+          "role": "eval script",
+          "confidence": 0.37,
+          "rationale": "This script is for evaluating model responses using GPT-4, which is crucial for the Vicuna benchmark and comparing performance to ChatGPT."
+        },
+        {
+          "path": "scripts/finetune_guanaco_65b.sh",
+          "role": "training entry",
+          "confidence": 0.33,
+          "rationale": "This script shows how to finetune the Guanaco 65B model, which is the subject of this claim."
+        },
+        {
+          "path": "eval/generations/vicuna/65b-guanaco-vicuna-generations-topp0.9-temp0.7.jsonl",
+          "role": "eval data",
+          "confidence": 0.9,
+          "rationale": "This file contains generated responses for the 65B Guanaco model on the Vicuna benchmark, directly supporting the claim's evaluation."
+        }
+      ],
+      "missing": [
+        {
+          "category": "evaluation_script",
+          "description": "The paper describes the evaluation methodology in detail, including the use of GPT-4 for pairwise comparisons and Elo ratings, and human evaluation. However, the actual scripts or code used for these evaluations are not explicitly provided or linked, which would be necessary to replicate the evaluation process precisely.",
+          "severity": "medium",
+          "evidence": []
+        },
+        {
+          "category": "training_recipe",
+          "description": "While the paper describes the QLoRA method and provides some training hyperparameters, the exact training recipe (e.g., optimizer state initialization, specific learning rate decay schedule if not constant, gradient accumulation steps if used, exact number of training steps/epochs for each model/dataset combination) is not fully specified for all experiments, making exact reproduction challenging.",
+          "severity": "medium",
+          "evidence": []
+        }
+      ],
+      "feasibility": "medium",
+      "blockers": [
+        "Full evaluation pipeline for Vicuna benchmark (beyond generation)",
+        "Exact training recipe for Guanaco 65B"
+      ],
+      "notes": null
+    }
+  ],
+  "overall_missing": [
+    {
+      "category": "random_seed",
+      "description": "The paper mentions using random seeds for Elo rating calculations (10,000 times) and for individual runs (Figure 2), but the specific seeds used are not provided.",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "SimilartoChiangetal.[10],werepeatthisprocedure10,000timeswithdifferentrandomseedsto controlfororderingeffects,e.g.,theeffectofwhichmodelpairscompetewitheachotherfirst.",
+          "location": "Section 5.1"
+        },
+        {
+          "quote": "Figure2:RougeLforLLaMA7BmodelsontheAlpacadataset.Eachpointrepresentsarunwithadifferentrandomseed.WeimproveontheStanfordAlpacafullyfinetuneddefaulthyperparametersto constructastrong16-bitbaselineforcomparisons.",
+          "location": "Section 4"
+        }
+      ]
+    },
+    {
+      "category": "hardware",
+      "description": "While the paper mentions using a single 48GB GPU for finetuning a 65B model and a single consumer GPU for a 33B model, the specific GPU model(s) used are not detailed. This information is important for understanding the practical limitations and potential for reproduction.",
+      "severity": "low",
+      "evidence": [
+        {
+          "quote": "We present QLORA, an efficient finetuning approach that reduces memory usage enough to finetune a 65B parameter model on a single 48GB GPU while preserving full 16-bit finetuning task performance.",
+          "location": "Abstract"
+        },
+        {
+          "quote": "Using QLORA, we train the Guanaco family of models, with the second best model reaching 97.8% of the performance level of ChatGPT on the Vicuna benchmark, while being trainable in less than 12 hours on a single consumer GPU; using a single professional GPU over 24 hours we achieve 99.3% with our largest model, essentially closing the gap to ChatGPT on the Vicuna benchmark.",
+          "location": "Abstract"
+        },
+        {
+          "quote": "Furthermore,wefindthatcurrentchatbotbenchmarksarenottrustworthytoaccurately evaluatetheperformancelevelsofchatbots. Alemon-pickedanalysisdemonstrates whereGuanacofailscomparedtoChatGPT.Wereleaseallofourmodelsandcode,includingCUDAkernelsfor4-bittraining.",
+          "location": "Abstract"
+        }
+      ]
+    },
+    {
+      "category": "data_split",
+      "description": "The paper mentions using various datasets for training and evaluation (e.g., OASST1, HH-RLHF, FLANv2, Alpaca, Vicuna benchmark, OA benchmark). However, the specific splits for training, validation, and testing for these datasets are not detailed, especially for the evaluation benchmarks.",
+      "severity": "high",
+      "evidence": [
+        {
+          "quote": "We use the Vicuna prompts, a set of 80 prompts from a diverse set of categories, without modifications. The OASST1 dataset is a multilingual collection of crowd-sourced multi turn dialogs between a user and an assistant. We select all user messages in the validation dataset as queries and include previous turns in the prompt. This procedure leads to 953 unique user queries. We term these two datasets the Vicuna and OA benchmarks.",
+          "location": "Section 5.2"
+        },
+        {
+          "quote": "We use the MMLU 5-shot dev set for validation and hyperparameter tuning.",
+          "location": "Section B.2"
+        }
+      ]
+    },
+    {
+      "category": "hyperparameters",
+      "description": "While some hyperparameters are provided (e.g., LoRA r, alpha, dropout, Adam betas, learning rate schedule, batch size, sequence length, gradient checkpointing), specific values for all hyperparameters used in the experiments, especially for the evaluation phase and for all model sizes, are not fully detailed. For instance, the exact learning rate for each model size and dataset combination is provided in Table 9, but other hyperparameters like weight decay or optimizer specific parameters are not always explicitly stated for all experiments.",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "We use the same hyperparameters described in the paper for training the various T5 models sizes on the Super-NaturalInstruction data. We use LoRAr =16 for small, medium, and large T5 models and LoRAr =64 for T5xl and xxl models. We also use LoRAα=64 in all our experiments and no LoRA dropout.",
+          "location": "Section A.2"
+        },
+        {
+          "quote": "We provide the exact hyperparameters used in our QLoRA finetuning experiments. We find hyperparameters to be largely robust across datasets. We use the MMLU 5-shot dev set for validation and hyperparameter tuning. In all our experiments we use NF4 with double quantization and bf16 computation datatype. We set LoRAr =64, α=16, and add LoRA modules on all linear layers of the base model. We also use Adam beta2 of 0.999, max grad norm of 0.3 and LoRA dropout of 0.1 for models up to 13B and 0.05 for 33B and 65B models. Following previous work on instruction finetuning [62, 60] and after benchmarking other linear and cosine schedules, we use a constant learning rate schedule. We use group-by-length to group examples of similar lengths into the same batch (note this will produce an oscillating loss curve). The hyperparameters we tune for each model size are shown in Table 9.",
+          "location": "Section B.2"
+        },
+        {
+          "quote": "We do a hyperparameter search for LoRA over the following variables: LoRA dropout{0.0,0.05,0.1}, LoRA r{8,16,32,64,128,256}, LoRA layers{key+query,all attention layers,all FFN layers,all layers,attention+FFN output layers}. We keep LoRA α fixed and search the learning rate, since LoRA α is always proportional to the learning rate.",
+          "location": "Section A.1"
+        }
+      ]
+    },
+    {
+      "category": "checkpoint",
+      "description": "The paper mentions releasing all models and code, and provides adapters for various model sizes. However, it does not explicitly state if full model checkpoints (not just adapters) are released or how to obtain them, which would be crucial for reproducing the exact finetuned models.",
+      "severity": "high",
+      "evidence": [
+        {
+          "quote": "We release all of our models and code, including CUDA kernels for 4-bit training.",
+          "location": "Abstract"
+        },
+        {
+          "quote": "We release a collection of adapters for 7/13/33/65B sizes models, trained on 8 different instruction following datasets, for a total of 32 different opensourced, finetuned models.",
+          "location": "Section 1"
+        }
+      ]
+    },
+    {
+      "category": "evaluation_script",
+      "description": "The paper describes the evaluation methodology in detail, including the use of GPT-4 for pairwise comparisons and Elo ratings, and human evaluation. However, the actual scripts or code used for these evaluations are not explicitly provided or linked, which would be necessary to replicate the evaluation process precisely.",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "We use GPT-4 to rate the performance of different systems against ChatGPT (GPT-3.5 Turbo) on the Vicuna benchmark.",
+          "location": "Section 5.2"
+        },
+        {
+          "quote": "We conduct these head-to-head comparisons on all permutations of pairs of systems on both the Vicuna and OA benchmarks.",
+          "location": "Section 5.2"
+        },
+        {
+          "quote": "We use Amazon Mechanical Turk (AMT) and get two human annotators for comparison to ChatGPT and three annotators for pairwise comparisons.",
+          "location": "Section 5.2"
+        }
+      ]
+    },
+    {
+      "category": "data_preprocessing",
+      "description": "The paper mentions using various datasets and preprocessing them (e.g., for Super-NaturalInstructions, OASST1, HH-RLHF). However, the exact preprocessing steps for each dataset, especially for the instruction tuning datasets and the evaluation benchmarks, are not fully detailed, which could lead to variations in performance.",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "We use the same preprocessing of the Super-NaturalInstruction dataset as Wang et al. [60]. However, we split the training data into training and validation datasets allowing us to perform more rigorous hyperparameter tuning and early stopping.",
+          "location": "Section A.2"
+        },
+        {
+          "quote": "In our experiments, we only use the top reply at each level in the conversation tree. This limits the dataset to 9,209 examples. We finetuning our models on the full conversation including the user queries.",
+          "location": "Section B.1"
+        }
+      ]
+    },
+    {
+      "category": "training_recipe",
+      "description": "While the paper describes the QLoRA method and provides some training hyperparameters, the exact training recipe (e.g., optimizer state initialization, specific learning rate decay schedule if not constant, gradient accumulation steps if used, exact number of training steps/epochs for each model/dataset combination) is not fully specified for all experiments, making exact reproduction challenging.",
+      "severity": "medium",
+      "evidence": [
+        {
+          "quote": "We use a constant learning rate schedule.",
+          "location": "Section B.2"
+        },
+        {
+          "quote": "The hyperparameters we tune for each model size are shown in Table 9.",
+          "location": "Section B.2"
+        },
+        {
+          "quote": "We find that increasing the dataset size and increasing the number of epochs improves MMLU only marginally (0.0-0.5 MMLU), while the difference between datasets is up to 40x larger (1.5-8.0 MMLU).",
+          "location": "Section B.4"
+        }
+      ]
+    },
+    {
+      "category": "license",
+      "description": "The paper mentions releasing code and models, but the specific licenses under which they are released are not stated. This is important for understanding the terms of use and redistribution.",
+      "severity": "low",
+      "evidence": [
+        {
+          "quote": "We release all of our models and code, including CUDA kernels for 4-bit training.",
+          "location": "Abstract"
+        }
+      ]
+    },
+    {
+      "category": "compute_budget",
+      "description": "The paper mentions training time (e.g., 24 hours on a single GPU for a 65B model, less than 12 hours for a 33B model on a consumer GPU) and memory usage (e.g., 48GB GPU for 65B model). However, a precise breakdown of the total compute budget (e.g., FLOPs, GPU hours across all experiments) is not provided, which would be useful for understanding the overall cost and scalability.",
+      "severity": "low",
+      "evidence": [
+        {
+          "quote": "Using QLORA, we train the Guanaco family of models, with the second best model reaching 97.8% of the performance level of ChatGPT on the Vicuna benchmark, while being trainable in less than 12 hours on a single consumer GPU; using a single professional GPU over 24 hours we achieve 99.3% with our largest model, essentially closing the gap to ChatGPT on the Vicuna benchmark.",
+          "location": "Abstract"
+        },
+        {
+          "quote": "QLORA reduces the average memory requirements of finetuning a 65B parameter model from >780GB of GPU memory to <48GB without degrading the runtime or predictive performance compared to a 16-bit fully finetuned baseline.",
+          "location": "Abstract"
+        }
+      ]
+    }
+  ],
+  "overall_feasibility": "medium",
+  "risks": [
+    "Reliance on external APIs (GPT-4) for evaluation, which can be costly and non-deterministic.",
+    "Incomplete evaluation scripts for benchmarks like Vicuna and MMLU, requiring significant reverse-engineering.",
+    "Lack of specific hardware details, making exact reproduction of memory and time claims difficult.",
+    "Absence of full model checkpoints, potentially hindering direct reproduction of finetuned models."
+  ],
+  "next_steps": [
+    "Investigate the full evaluation pipeline for the Vicuna benchmark, specifically how the GPT-4 reviews are processed into a final score.",
+    "Clarify the exact training recipes (epochs, learning rate schedules, gradient accumulation) for each model size and dataset combination.",
+    "Identify the specific GPU models used for training and evaluation to better understand hardware constraints.",
+    "Determine if full model checkpoints (not just adapters) are available or how to reconstruct them for direct reproduction."
+  ]
+}

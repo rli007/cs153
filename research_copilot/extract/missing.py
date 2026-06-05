@@ -8,7 +8,7 @@ from pydantic import TypeAdapter, ValidationError
 
 from research_copilot.ingest import PaperText
 from research_copilot.llm import complete_json
-from research_copilot.schemas import MissingDetail
+from research_copilot.schemas import MissingDetail, coerce_missing_category
 
 
 _MISSING_ADAPTER = TypeAdapter(list[MissingDetail])
@@ -78,7 +78,7 @@ def detect_missing_details(
         system=_SYSTEM,
         user="\n".join(user_parts),
         schema_hint=_SCHEMA_HINT,
-        max_tokens=2048,
+        max_tokens=6144,
     )
 
     if isinstance(raw, dict) and "missing" in raw:
@@ -86,15 +86,23 @@ def detect_missing_details(
     if not isinstance(raw, list):
         raise ValueError(f"Expected list of missing details, got {type(raw).__name__}")
 
+    cleaned_input: list[dict] = []
+    for item in raw:
+        if not isinstance(item, dict):
+            continue
+        item = dict(item)
+        item["category"] = coerce_missing_category(item.get("category"))
+        cleaned_input.append(item)
+
     try:
-        return _MISSING_ADAPTER.validate_python(raw)
+        return _MISSING_ADAPTER.validate_python(cleaned_input)
     except ValidationError as exc:
         cleaned: list[MissingDetail] = []
-        for item in raw:
+        for item in cleaned_input:
             try:
                 cleaned.append(MissingDetail.model_validate(item))
             except ValidationError:
                 continue
-        if not cleaned and raw:
+        if not cleaned and cleaned_input:
             raise ValueError(f"All missing-detail items failed validation: {exc}\nRaw: {json.dumps(raw)[:600]}")
         return cleaned

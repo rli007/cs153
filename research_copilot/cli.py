@@ -5,9 +5,6 @@ Two subcommands:
 - ``audit`` — run a single audit (paper + repo) and write Markdown/JSON.
 - ``bench`` — run a JSON bench spec, score every audit against ground truth,
   and emit per-paper audits plus aggregate metrics.
-
-For backward compatibility, calling the program with no subcommand but with
-the ``--paper / --repo / --benchmark`` flags is treated as ``audit``.
 """
 
 from __future__ import annotations
@@ -22,44 +19,6 @@ from research_copilot.workflow import CopilotInput, build_audit
 from research_copilot.writers import write_json, write_markdown
 
 
-def _add_audit_args(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument(
-        "--paper",
-        required=True,
-        help="Path to a .txt or .pdf, or an arXiv id/url (e.g. 2501.12345).",
-    )
-    parser.add_argument(
-        "--repo",
-        required=True,
-        help="Path to a local repository, or a GitHub URL (will be shallow-cloned).",
-    )
-    parser.add_argument(
-        "--benchmark",
-        required=True,
-        help="Benchmark or task you want to reproduce, in plain English.",
-    )
-    parser.add_argument(
-        "--model-card",
-        default=None,
-        help="Optional file path or HuggingFace URL (huggingface.co/<org>/<model>).",
-    )
-    parser.add_argument(
-        "--reviews",
-        default=None,
-        help="Optional OpenReview forum URL or note id; reviewer concerns help find missing details.",
-    )
-    parser.add_argument(
-        "--output",
-        default="outputs/audit.md",
-        help="Output path. Use a .md or .json extension to pick the format.",
-    )
-    parser.add_argument(
-        "--no-retrieval",
-        action="store_true",
-        help="Disable local embedding-based retrieval over the repo (faster, fewer signals).",
-    )
-
-
 def _build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(
         prog="research-copilot",
@@ -68,10 +27,44 @@ def _build_parser() -> argparse.ArgumentParser:
             "``bench`` scores audits against a hand-curated rubric."
         ),
     )
-    sub = parser.add_subparsers(dest="command")
+    sub = parser.add_subparsers(dest="command", required=True)
 
     audit_parser = sub.add_parser("audit", help="Run a single audit.")
-    _add_audit_args(audit_parser)
+    audit_parser.add_argument(
+        "--paper",
+        required=True,
+        help="Path to a .txt or .pdf, or an arXiv id/url (e.g. 2501.12345).",
+    )
+    audit_parser.add_argument(
+        "--repo",
+        required=True,
+        help="Path to a local repository, or a GitHub URL (will be shallow-cloned).",
+    )
+    audit_parser.add_argument(
+        "--benchmark",
+        required=True,
+        help="Benchmark or task you want to reproduce, in plain English.",
+    )
+    audit_parser.add_argument(
+        "--model-card",
+        default=None,
+        help="Optional file path or HuggingFace URL (huggingface.co/<org>/<model>).",
+    )
+    audit_parser.add_argument(
+        "--reviews",
+        default=None,
+        help="Optional OpenReview forum URL or note id; reviewer concerns help find missing details.",
+    )
+    audit_parser.add_argument(
+        "--output",
+        default="outputs/audit.md",
+        help="Output path. Use a .md or .json extension to pick the format.",
+    )
+    audit_parser.add_argument(
+        "--no-retrieval",
+        action="store_true",
+        help="Disable local embedding-based retrieval over the repo.",
+    )
 
     bench_parser = sub.add_parser("bench", help="Run a bench spec and score audits.")
     bench_parser.add_argument("--spec", required=True, help="Path to a bench spec JSON.")
@@ -80,9 +73,12 @@ def _build_parser() -> argparse.ArgumentParser:
         default="outputs/bench",
         help="Output directory; one subfolder per paper plus bench_summary.{md,json}.",
     )
+    bench_parser.add_argument(
+        "--no-retrieval",
+        action="store_true",
+        help="Run the bench without local embedding retrieval (ablation).",
+    )
 
-    # Backward compatibility: accept top-level audit flags too.
-    _add_audit_args(parser)
     return parser
 
 
@@ -116,7 +112,7 @@ def _run_bench(args: argparse.Namespace) -> int:
         return 1
     spec = load_bench_spec(spec_path)
     out_dir = Path(args.out)
-    result = run_bench(spec, out_dir)
+    result = run_bench(spec, out_dir, use_retrieval=not args.no_retrieval)
     print(
         f"Bench '{spec.name}' \u2014 papers={len(result.paper_scores)} "
         f"failed={len(result.failed)} aggregate={result.aggregate_score:.3f}"
@@ -131,25 +127,12 @@ def _run_bench(args: argparse.Namespace) -> int:
     return 0
 
 
-def parse_args(argv: list[str] | None = None) -> argparse.Namespace:
-    parser = _build_parser()
-    return parser.parse_args(argv)
-
-
 def main(argv: list[str] | None = None) -> int:
     parser = _build_parser()
     args = parser.parse_args(argv)
-
     if args.command == "bench":
         return _run_bench(args)
-    if args.command == "audit" or args.command is None:
-        if not getattr(args, "paper", None):
-            parser.print_help()
-            return 1
-        return _run_audit(args)
-
-    parser.print_help()
-    return 1
+    return _run_audit(args)
 
 
 if __name__ == "__main__":

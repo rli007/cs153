@@ -29,6 +29,7 @@ from research_copilot.config import (
     MODEL_ROUTES,
     REQUESTS_PER_MINUTE,
     ensure_dirs,
+    is_reasoning_model,
 )
 
 
@@ -121,15 +122,18 @@ def complete(
 
         try:
             _BUCKET.acquire()
-            response = client.chat.completions.create(
-                model=model,
-                messages=[
+            effective_max = max_tokens + 4096 if is_reasoning_model(model) else max_tokens
+            kwargs = {
+                "model": model,
+                "messages": [
                     {"role": "system", "content": system},
                     {"role": "user", "content": user},
                 ],
-                temperature=temperature,
-                max_tokens=max_tokens,
-            )
+                "max_tokens": effective_max,
+            }
+            if not is_reasoning_model(model):
+                kwargs["temperature"] = temperature
+            response = client.chat.completions.create(**kwargs)
             text = response.choices[0].message.content or ""
             cache_path.write_text(
                 json.dumps({"text": text, "model": model}, indent=2),
@@ -153,31 +157,89 @@ def complete(
     )
 
 
-_FENCED_JSON = re.compile(r"```(?:json|JSON)?\s*([\[{].*?[\]}])\s*```", re.DOTALL)
+_FENCE_OPEN = re.compile(r"```(?:json|JSON)?\s*", re.IGNORECASE)
+
+
+def _strip_fences(text: str) -> str:
+    """Remove markdown code fences (greedy outer match)."""
+    text = text.strip()
+    m = _FENCE_OPEN.search(text)
+    if m:
+        text = text[m.end() :]
+    if text.endswith("```"):
+        text = text[: -3]
+    return text.strip()
+
+
+def _balance_truncated(text: str) -> str | None:
+    """Best-effort recovery of a JSON value cut off by max_tokens.
+
+    Walks the text and counts brace/bracket depth, ignoring chars inside strings.
+    Trims trailing junk and appends any unclosed closers in reverse order.
+    """
+    if not text or text[0] not in "[{":
+        return None
+    stack: list[str] = []
+    in_string = False
+    escape = False
+    last_complete = -1
+    for i, ch in enumerate(text):
+        if escape:
+            escape = False
+            continue
+        if ch == "\\" and in_string:
+            escape = True
+            continue
+        if ch == '"':
+            in_string = not in_string
+            continue
+        if in_string:
+            continue
+        if ch in "{[":
+            stack.append("}" if ch == "{" else "]")
+        elif ch in "}]":
+            if stack and stack[-1] == ch:
+                stack.pop()
+                if not stack:
+                    last_complete = i
+    if not stack:
+        return None
+    truncated = text[: last_complete + 1] if last_complete >= 0 else text
+    if last_complete >= 0:
+        return truncated
+    while truncated and truncated[-1] in ", \n\r\t":
+        truncated = truncated[:-1]
+    if in_string:
+        truncated += '"'
+    return truncated + "".join(reversed(stack))
 
 
 def extract_json(text: str) -> Any:
-    """Pull a JSON value out of a possibly noisy model response."""
+    """Pull a JSON value out of a possibly noisy / truncated model response."""
 
-    text = text.strip()
+    cleaned = _strip_fences(text)
     try:
-        return json.loads(text)
+        return json.loads(cleaned)
     except json.JSONDecodeError:
         pass
 
-    match = _FENCED_JSON.search(text)
-    if match:
-        try:
-            return json.loads(match.group(1))
-        except json.JSONDecodeError:
-            pass
-
     for opener, closer in (("{", "}"), ("[", "]")):
-        start = text.find(opener)
-        end = text.rfind(closer)
+        start = cleaned.find(opener)
+        end = cleaned.rfind(closer)
         if start != -1 and end > start:
             try:
-                return json.loads(text[start : end + 1])
+                return json.loads(cleaned[start : end + 1])
+            except json.JSONDecodeError:
+                continue
+
+    for opener in ("{", "["):
+        start = cleaned.find(opener)
+        if start == -1:
+            continue
+        repaired = _balance_truncated(cleaned[start:])
+        if repaired:
+            try:
+                return json.loads(repaired)
             except json.JSONDecodeError:
                 continue
 

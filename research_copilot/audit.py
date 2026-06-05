@@ -26,6 +26,7 @@ from research_copilot.schemas import (
     ClaimAudit,
     MissingDetail,
     RepoSignals,
+    coerce_missing_category,
 )
 
 
@@ -180,9 +181,11 @@ def audit_claims(
         system=_SYSTEM,
         user=user,
         schema_hint=_SCHEMA_HINT,
-        max_tokens=4096,
+        max_tokens=16384,
     )
 
+    if isinstance(raw, list):
+        raw = {"claim_audits": raw}
     if not isinstance(raw, dict):
         raise ValueError(f"Audit step expected a JSON object, got {type(raw).__name__}")
 
@@ -198,22 +201,28 @@ def audit_claims(
     claim_audits: list[ClaimAudit] = []
     for i, claim in enumerate(claims):
         entry = by_index.get(i, {})
+        clean_missing = []
+        for m in entry.get("missing", []) or []:
+            if isinstance(m, dict):
+                m = dict(m)
+                m["category"] = coerce_missing_category(m.get("category"))
+                clean_missing.append(m)
         try:
             audit = ClaimAudit.model_validate(
                 {
                     "claim": claim.model_dump(),
                     "code_links": entry.get("code_links", []),
-                    "missing": entry.get("missing", []),
+                    "missing": clean_missing,
                     "feasibility": entry.get("feasibility", "low"),
                     "blockers": entry.get("blockers", []),
                     "notes": entry.get("notes"),
                 }
             )
-        except ValidationError:
+        except ValidationError as exc:
             audit = ClaimAudit(
                 claim=claim,
                 feasibility="low",
-                blockers=["audit step returned an invalid entry for this claim"],
+                blockers=[f"audit step returned an invalid entry: {exc.error_count()} errors"],
             )
         claim_audits.append(audit)
 

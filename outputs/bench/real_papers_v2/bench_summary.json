@@ -1,0 +1,90 @@
+{
+  "spec_name": "real-papers-v1",
+  "spec_description": "Five real, well-known ML papers spanning the reproducibility quality spectrum. Hand-curated ground truth based on author repos and what is/is not in each paper.",
+  "aggregate": {
+    "claim_coverage": 0.8,
+    "gap_f1": 0.29191919191919197,
+    "link_accuracy": 1.0,
+    "feasibility_pass_rate": 0.6,
+    "overall": 0.672979797979798
+  },
+  "papers": [
+    {
+      "paper_id": "lora",
+      "rubric": {
+        "claim_coverage": 1.0,
+        "gap_precision": 0.16666666666666666,
+        "gap_recall": 0.5,
+        "gap_f1": 0.25,
+        "link_accuracy": 1.0,
+        "feasibility_pass": true
+      },
+      "notes": [
+        "gap_detection: did not flag ['compute_budget']",
+        "gap_detection: extra (possibly false-positive) flags: ['data_split', 'hardware', 'hyperparameters', 'other', 'training_recipe']"
+      ]
+    },
+    {
+      "paper_id": "flash-attention",
+      "rubric": {
+        "claim_coverage": 1.0,
+        "gap_precision": 0.2857142857142857,
+        "gap_recall": 1.0,
+        "gap_f1": 0.4444444444444445,
+        "link_accuracy": 1.0,
+        "feasibility_pass": true
+      },
+      "notes": [
+        "gap_detection: extra (possibly false-positive) flags: ['compute_budget', 'data_preprocessing', 'data_split', 'hyperparameters', 'training_recipe']"
+      ]
+    },
+    {
+      "paper_id": "dpo",
+      "rubric": {
+        "claim_coverage": 1.0,
+        "gap_precision": 0.1,
+        "gap_recall": 1.0,
+        "gap_f1": 0.18181818181818182,
+        "link_accuracy": 1.0,
+        "feasibility_pass": false
+      },
+      "notes": [
+        "gap_detection: extra (possibly false-positive) flags: ['checkpoint', 'compute_budget', 'data_preprocessing', 'data_split', 'evaluation_script', 'hardware', 'hyperparameters', 'license', 'training_recipe']",
+        "feasibility: got low, expected >= medium"
+      ]
+    },
+    {
+      "paper_id": "mamba",
+      "rubric": {
+        "claim_coverage": 0.5,
+        "gap_precision": 0.16666666666666666,
+        "gap_recall": 0.5,
+        "gap_f1": 0.25,
+        "link_accuracy": 1.0,
+        "feasibility_pass": false
+      },
+      "notes": [
+        "missing claim with keywords ['Mamba', 'selective']",
+        "gap_detection: did not flag ['random_seed']",
+        "gap_detection: extra (possibly false-positive) flags: ['compute_budget', 'data_split', 'hyperparameters', 'other', 'training_recipe']",
+        "feasibility: got low, expected >= medium"
+      ]
+    },
+    {
+      "paper_id": "qlora",
+      "rubric": {
+        "claim_coverage": 0.5,
+        "gap_precision": 0.2,
+        "gap_recall": 1.0,
+        "gap_f1": 0.33333333333333337,
+        "link_accuracy": 1.0,
+        "feasibility_pass": true
+      },
+      "notes": [
+        "missing claim with keywords ['QLoRA', '4-bit']",
+        "gap_detection: extra (possibly false-positive) flags: ['compute_budget', 'data_preprocessing', 'data_split', 'evaluation_script', 'hardware', 'hyperparameters', 'license', 'training_recipe']"
+      ]
+    }
+  ],
+  "failed": []
+}

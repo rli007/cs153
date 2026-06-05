@@ -53,7 +53,11 @@ class BenchResult:
         }
 
 
-def _run_one(entry: PaperEntry, output_dir: Path) -> tuple[PaperScore | None, dict | None]:
+def _run_one(
+    entry: PaperEntry,
+    output_dir: Path,
+    use_retrieval: bool = True,
+) -> tuple[PaperScore | None, dict | None]:
     try:
         report = build_audit(
             CopilotInput(
@@ -62,6 +66,7 @@ def _run_one(entry: PaperEntry, output_dir: Path) -> tuple[PaperScore | None, di
                 benchmark=entry.benchmark,
                 model_card=entry.model_card,
                 reviews=entry.reviews,
+                use_retrieval=use_retrieval,
             )
         )
     except Exception as exc:
@@ -81,13 +86,17 @@ def _mean(values: list[float]) -> float:
     return statistics.fmean(values) if values else 0.0
 
 
-def run_bench(spec: BenchSpec, output_dir: Path) -> BenchResult:
+def run_bench(
+    spec: BenchSpec,
+    output_dir: Path,
+    use_retrieval: bool = True,
+) -> BenchResult:
     output_dir.mkdir(parents=True, exist_ok=True)
 
     scores: list[PaperScore] = []
     failed: list[dict] = []
     for entry in spec.papers:
-        score, error = _run_one(entry, output_dir)
+        score, error = _run_one(entry, output_dir, use_retrieval=use_retrieval)
         if error is not None:
             failed.append(error)
             continue

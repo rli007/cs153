@@ -1,0 +1,105 @@
+{
+  "name": "real-papers-v1",
+  "description": "Five real, well-known ML papers spanning the reproducibility quality spectrum. Hand-curated ground truth based on author repos and what is/is not in each paper.",
+  "papers": [
+    {
+      "id": "lora",
+      "paper": "2106.09685",
+      "repo": "https://github.com/microsoft/LoRA",
+      "benchmark": "Reproduce the LoRA fine-tuning of GPT-2 medium on E2E NLG and recover the published BLEU/ROUGE numbers from Table 2.",
+      "model_card": null,
+      "reviews": null,
+      "ground_truth": {
+        "expected_claim_keywords": [
+          ["LoRA", "GPT-2"],
+          ["GPT-3"]
+        ],
+        "expected_missing_categories": [
+          "random_seed",
+          "compute_budget"
+        ],
+        "expected_code_links": {},
+        "min_feasibility": "medium"
+      }
+    },
+    {
+      "id": "flash-attention",
+      "paper": "2205.14135",
+      "repo": "https://github.com/Dao-AILab/flash-attention",
+      "benchmark": "Reproduce the FlashAttention end-to-end speedup on GPT-2 training reported in Table 1.",
+      "model_card": null,
+      "reviews": null,
+      "ground_truth": {
+        "expected_claim_keywords": [
+          ["FlashAttention", "GPT-2"],
+          ["BERT"]
+        ],
+        "expected_missing_categories": [
+          "random_seed",
+          "hardware"
+        ],
+        "expected_code_links": {},
+        "min_feasibility": "medium"
+      }
+    },
+    {
+      "id": "dpo",
+      "paper": "2305.18290",
+      "repo": "https://github.com/eric-mitchell/direct-preference-optimization",
+      "benchmark": "Reproduce DPO on the IMDB sentiment task and recover the win-rate vs PPO reported in Section 6.",
+      "model_card": null,
+      "reviews": null,
+      "ground_truth": {
+        "expected_claim_keywords": [
+          ["DPO", "PPO"],
+          ["preference"]
+        ],
+        "expected_missing_categories": [
+          "random_seed"
+        ],
+        "expected_code_links": {},
+        "min_feasibility": "medium"
+      }
+    },
+    {
+      "id": "mamba",
+      "paper": "2312.00752",
+      "repo": "https://github.com/state-spaces/mamba",
+      "benchmark": "Reproduce the Mamba selective-state-space model on Pile language modeling and recover the perplexity from Table 4.",
+      "model_card": null,
+      "reviews": null,
+      "ground_truth": {
+        "expected_claim_keywords": [
+          ["Mamba", "selective"],
+          ["Transformer"]
+        ],
+        "expected_missing_categories": [
+          "random_seed",
+          "hardware"
+        ],
+        "expected_code_links": {},
+        "min_feasibility": "medium"
+      }
+    },
+    {
+      "id": "qlora",
+      "paper": "2305.14314",
+      "repo": "https://github.com/artidoro/qlora",
+      "benchmark": "Reproduce QLoRA fine-tuning of LLaMA-7B on Alpaca and recover the MMLU score from Table 6.",
+      "model_card": null,
+      "reviews": null,
+      "ground_truth": {
+        "expected_claim_keywords": [
+          ["QLoRA", "4-bit"],
+          ["Guanaco"]
+        ],
+        "expected_missing_categories": [
+          "random_seed",
+          "checkpoint"
+        ],
+        "expected_code_links": {},
+        "min_feasibility": "medium"
+      }
+    }
+  ]
+}

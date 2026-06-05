@@ -36,33 +36,48 @@ REQUESTS_PER_MINUTE = int(os.environ.get("RC_RPM", "18"))
 
 MODEL_ROUTES: dict[str, list[str]] = {
     "long_ingest": [
-        "meta-llama/llama-4-scout:free",
+        "google/gemini-2.5-flash-lite",
+        "deepseek/deepseek-v4-flash",
         "qwen/qwen3-coder:free",
-        "google/gemini-2.0-flash-exp:free",
-        "meta-llama/llama-3.3-70b-instruct:free",
     ],
     "extract": [
-        "deepseek/deepseek-chat-v3-0324:free",
+        "google/gemini-2.5-flash-lite",
+        "deepseek/deepseek-v4-flash",
         "meta-llama/llama-3.3-70b-instruct:free",
-        "qwen/qwen3-coder:free",
-        "google/gemini-2.0-flash-exp:free",
     ],
     "code": [
+        "qwen/qwen3-coder-30b-a3b-instruct",
         "qwen/qwen3-coder:free",
-        "deepseek/deepseek-chat-v3-0324:free",
-        "meta-llama/llama-3.3-70b-instruct:free",
+        "google/gemini-2.5-flash-lite",
     ],
     "reason": [
-        "deepseek/deepseek-r1:free",
-        "deepseek/deepseek-chat-v3-0324:free",
-        "meta-llama/llama-3.3-70b-instruct:free",
+        "google/gemini-2.5-flash",
+        "deepseek/deepseek-v4-flash",
+        "google/gemini-2.5-flash-lite",
     ],
     "triage": [
-        "google/gemini-2.0-flash-exp:free",
-        "meta-llama/llama-3.3-70b-instruct:free",
-        "deepseek/deepseek-chat-v3-0324:free",
+        "google/gemini-2.5-flash-lite",
+        "deepseek/deepseek-v4-flash",
     ],
 }
+
+
+REASONING_MODELS: set[str] = {
+    "openai/gpt-5-nano",
+    "openai/gpt-5-mini",
+    "openai/gpt-5",
+    "openai/gpt-5.1",
+    "openai/gpt-5.4-mini",
+    "openai/gpt-5.4-nano",
+    "qwen/qwen3-next-80b-a3b-thinking",
+    "qwen/qwen3-235b-a22b-thinking-2507",
+    "deepseek/deepseek-r1",
+    "deepseek/deepseek-r1-0528",
+}
+
+
+def is_reasoning_model(model_id: str) -> bool:
+    return model_id in REASONING_MODELS
 
 
 def ensure_dirs() -> None:

@@ -67,8 +67,64 @@ MissingCategory = Literal[
     "training_recipe",
     "license",
     "compute_budget",
+    "model_architecture",
+    "dataset_details",
+    "code_availability",
+    "dependencies",
     "other",
 ]
+
+
+_MISSING_CATEGORY_VALUES = {
+    "random_seed",
+    "hardware",
+    "data_split",
+    "hyperparameters",
+    "checkpoint",
+    "evaluation_script",
+    "data_preprocessing",
+    "training_recipe",
+    "license",
+    "compute_budget",
+    "model_architecture",
+    "dataset_details",
+    "code_availability",
+    "dependencies",
+    "other",
+}
+
+
+def coerce_missing_category(value: object) -> str:
+    """Map any string to a known MissingCategory, falling back to ``other``."""
+    if not isinstance(value, str):
+        return "other"
+    v = value.lower().strip().replace("-", "_").replace(" ", "_")
+    if v in _MISSING_CATEGORY_VALUES:
+        return v
+    aliases = {
+        "seed": "random_seed",
+        "seeds": "random_seed",
+        "compute": "compute_budget",
+        "gpu": "hardware",
+        "splits": "data_split",
+        "hp": "hyperparameters",
+        "ckpt": "checkpoint",
+        "weights": "checkpoint",
+        "eval": "evaluation_script",
+        "metric": "evaluation_script",
+        "preprocessing": "data_preprocessing",
+        "preprocess": "data_preprocessing",
+        "training": "training_recipe",
+        "recipe": "training_recipe",
+        "architecture": "model_architecture",
+        "model": "model_architecture",
+        "dataset": "dataset_details",
+        "data": "dataset_details",
+        "code": "code_availability",
+        "deps": "dependencies",
+        "requirements": "dependencies",
+    }
+    return aliases.get(v, "other")
 
 
 class MissingDetail(BaseModel):
